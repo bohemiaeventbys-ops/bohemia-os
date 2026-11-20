@@ -1,6 +1,6 @@
 import type { DayStatus, EventStatus, EventType, PunchKind, TaskPriority, TaskStatus, AppRole } from "./types";
 
-export type Tone = "neutral" | "sand" | "sage" | "clay" | "ochre" | "mist" | "ink";
+export type Tone = "neutral" | "sand" | "sage" | "clay" | "ochre" | "mist" | "ink" | "rose" | "plum" | "teal";
 
 export const TASK_STATUS: Record<TaskStatus, { label: string; tone: Tone }> = {
   a_faire: { label: "À faire", tone: "neutral" },
@@ -72,6 +72,20 @@ export const ROLE: Record<AppRole, string> = {
 
 export const LEAVE_TYPE: Record<string, string> = {
   conge: "Congé", absence: "Absence", maladie: "Maladie", retard: "Retard", sortie_autorisee: "Sortie autorisée", recuperation: "Récupération",
+};
+
+export const LEAVE_TONE: Record<string, Tone> = {
+  conge: "ochre", absence: "clay", maladie: "rose", retard: "plum", sortie_autorisee: "teal", recuperation: "mist",
+};
+export const LEAVE_HINT: Record<string, string> = {
+  conge: "Vacances, jours de repos", absence: "Absence prévue ou non", maladie: "Avec certificat si possible",
+  retard: "J'arriverai plus tard", sortie_autorisee: "Je dois partir un moment", recuperation: "Jour rendu après des heures en plus",
+};
+export const LEAVE_STATUS: Record<string, { label: string; tone: Tone }> = {
+  en_attente: { label: "En attente", tone: "ochre" },
+  validee: { label: "Validée", tone: "sage" },
+  refusee: { label: "Refusée", tone: "clay" },
+  annulee: { label: "Annulée", tone: "neutral" },
 };
 
 export const WEEKDAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];

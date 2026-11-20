@@ -11,5 +11,5 @@ const map = {
 
 export function NavIcon({ name, ...props }: { name: string } & LucideProps) {
   const C = map[name as keyof typeof map] ?? LayoutDashboard;
-  return <C strokeWidth={1.5} {...props} />;
+  return <C strokeWidth={1.8} {...props} />;
 }

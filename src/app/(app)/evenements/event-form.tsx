@@ -27,7 +27,6 @@ export function EventFields({ e, employees }: { e?: EventRow; employees: Employe
         <Field label="Date"><Input type="date" name="event_date" defaultValue={e?.event_date} required /></Field>
         <Field label="Adresse / lieu" className="md:col-span-2"><Input name="address" defaultValue={e?.address ?? ""} /></Field>
         <Field label="Responsable"><Select name="manager_id" defaultValue={e?.manager_id ?? ""}><option value="">—</option>{employees.map((x) => <option key={x.id} value={x.id}>{fullName(x)}</option>)}</Select></Field>
-        <Field label="Budget (DH)"><Input name="budget_mad" inputMode="decimal" defaultValue={e?.budget_mad ?? ""} /></Field>
       </section>
       <section>
         <p className="label">Horaires (heure de Casablanca)</p>

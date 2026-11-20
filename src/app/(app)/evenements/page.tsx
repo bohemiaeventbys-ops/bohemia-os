@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { diffDays, formatDayShort, todayISO, toLocalTime } from "@/lib/dates";
 import { formatMAD, fullName } from "@/lib/format";
 import { DONE_STATUSES, EVENT_STATUS, EVENT_TYPE } from "@/lib/labels";
-import type { EventRow } from "@/lib/types";
+import type { EventFinance, EventRow } from "@/lib/types";
 
 export const metadata = { title: "Événements" };
 
@@ -36,6 +36,10 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
     progress.set(t.event_id, p);
   }
   const people = new Map((staff ?? []).map((p) => [p.id, p]));
+  // Montants : uniquement direction + commerciale (permission finance.view, aussi imposée par RLS)
+  const showMoney = s.can("finance.view");
+  const { data: finRows } = showMoney && ids.length ? await supabase.from("event_finances").select("*").in("event_id", ids) : { data: [] };
+  const fin = new Map(((finRows ?? []) as EventFinance[]).map((f) => [f.event_id, f]));
   const typeLink = (t?: string) => `/evenements?vue=${vue}${t ? `&type=${t}` : ""}`;
 
   return (
@@ -52,7 +56,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       <Card>
         {events.length === 0 ? <Empty title="Aucun événement." /> : (
           <table className="table-base">
-            <thead><tr><th>Date</th><th>Événement</th><th>Type</th><th>Lieu</th><th>Responsable</th><th>Budget</th><th>Tâches</th><th>Statut</th></tr></thead>
+            <thead><tr><th>Date</th><th>Événement</th><th>Type</th><th>Lieu</th><th>Responsable</th>{showMoney && <th>Budget</th>}<th>Tâches</th><th>Statut</th></tr></thead>
             <tbody>
               {events.map((e) => {
                 const p = progress.get(e.id);
@@ -64,7 +68,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                     <td className="text-ink-500">{EVENT_TYPE[e.event_type]}</td>
                     <td className="max-w-[200px] truncate text-ink-500">{e.address ?? "—"}</td>
                     <td>{e.manager_id ? fullName(people.get(e.manager_id)) : "—"}</td>
-                    <td className="tabular-nums">{formatMAD(e.budget_mad)}</td>
+                    {showMoney && <td className="tabular-nums">{formatMAD(fin.get(e.id)?.budget_mad ?? null)}</td>}
                     <td>{p ? <Progress done={p.done} total={p.total} /> : <span className="text-xs text-ink-300">Aucune</span>}</td>
                     <td><Badge tone={EVENT_STATUS[e.status].tone}>{EVENT_STATUS[e.status].label}</Badge></td>
                   </tr>

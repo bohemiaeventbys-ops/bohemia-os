@@ -12,10 +12,14 @@ const config: Config = {
         taupe: { 300: "#B9AC9C", 400: "#A39382", 500: "#8B7D6B", 600: "#706455", 700: "#574D42" },
         ink: { DEFAULT: "#2B2926", 600: "#45423D", 500: "#5E5A54", 400: "#7D786F", 300: "#A29C92" },
         line: { DEFAULT: "#E6DFD4", strong: "#D8CEC0" },
-        sage: { 100: "#E7EBDF", 500: "#7A8A69", 700: "#566349" },
-        clay: { 100: "#F3E2D9", 500: "#B4694C", 700: "#8A4A33" },
-        ochre: { 100: "#F4EAD3", 500: "#B98F3E", 700: "#8A6826" },
-        mist: { 100: "#E5EAEE", 500: "#6B7F90", 700: "#4D5E6C" },
+        // Accents chaleureux (plus colorés, restent doux) : par statut, par département, par module
+        sage: { 50: "#F2F5EE", 100: "#E3EBD9", 200: "#CCDABB", 500: "#6E8A58", 600: "#5C7549", 700: "#4A5E3B" },
+        clay: { 50: "#FCF1EC", 100: "#F7DFD3", 200: "#EEC1AC", 500: "#C46A47", 600: "#A9573A", 700: "#8A452D" },
+        ochre: { 50: "#FCF6E9", 100: "#F8EACB", 200: "#EFD59A", 500: "#C9963A", 600: "#A97C2C", 700: "#865F1F" },
+        mist: { 50: "#EFF4F8", 100: "#DCE7F0", 200: "#BCD0E0", 500: "#5E86A6", 600: "#4C6F8C", 700: "#3D5A72" },
+        rose: { 50: "#FCF1F2", 100: "#F8DFE2", 200: "#F0C2C8", 500: "#C9707E", 600: "#AE5867", 700: "#8C4250" },
+        plum: { 50: "#F6F2F9", 100: "#EBE2F3", 200: "#D7C6E7", 500: "#8E6FB0", 600: "#775A97", 700: "#5F4779" },
+        teal: { 50: "#EEF6F4", 100: "#D7EBE6", 200: "#B2D7CE", 500: "#4F9585", 600: "#3F7C6E", 700: "#326358" },
       },
       fontFamily: {
         sans: ['"Inter Variable"', "Inter", "system-ui", "sans-serif"],

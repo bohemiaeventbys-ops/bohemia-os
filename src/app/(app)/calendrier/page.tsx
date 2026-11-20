@@ -20,11 +20,11 @@ interface Item { date: string; time?: string; kind: Kind; title: string; href?: 
 type SP = { vue?: string; date?: string; employe?: string; departement?: string; type?: string; statut?: string; afficher?: string };
 
 const KIND_STYLE: Record<Kind, { label: string; cls: string }> = {
-  evenement: { label: "Événement", cls: "bg-ink text-ivory" },
-  livraison: { label: "Livraison", cls: "bg-nude-200 text-taupe-700" },
+  evenement: { label: "Événement", cls: "bg-rose-500 text-white" },
+  livraison: { label: "Livraison", cls: "bg-teal-100 text-teal-700" },
   installation: { label: "Installation", cls: "bg-ochre-100 text-ochre-700" },
-  demontage: { label: "Démontage", cls: "bg-sand-200 text-ink-500" },
-  tache: { label: "Tâche", cls: "bg-white text-ink border border-line" },
+  demontage: { label: "Démontage", cls: "bg-plum-100 text-plum-700" },
+  tache: { label: "Tâche", cls: "bg-sage-50 text-sage-700 border border-sage-200" },
   conge: { label: "Congé", cls: "bg-mist-100 text-mist-700" },
 };
 
@@ -212,7 +212,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
 function Chip({ it, full }: { it: Item; full?: boolean }) {
   const body = (
-    <span className={cn("block truncate rounded px-1.5 py-0.5 text-[11px] leading-4", KIND_STYLE[it.kind].cls)} title={`${KIND_STYLE[it.kind].label} · ${it.title}${it.meta ? ` · ${it.meta}` : ""}`}>
+    <span className={cn("block truncate rounded-md px-1.5 py-0.5 text-[11px] font-medium leading-4", KIND_STYLE[it.kind].cls)} title={`${KIND_STYLE[it.kind].label} · ${it.title}${it.meta ? ` · ${it.meta}` : ""}`}>
       {it.time && <span className="mr-1 opacity-70">{it.time}</span>}
       {it.kind !== "evenement" && it.kind !== "tache" && <span className="mr-1 opacity-70">{KIND_STYLE[it.kind].label} ·</span>}
       {it.title}

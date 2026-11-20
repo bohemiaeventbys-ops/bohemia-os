@@ -28,7 +28,7 @@ export interface Task {
 export interface EventRow {
   id: string; name: string; event_type: EventType; status: EventStatus; client_name: string | null; client_phone: string | null;
   event_date: string; address: string | null; delivery_at: string | null; setup_at: string | null; start_at: string | null;
-  end_at: string | null; teardown_at: string | null; manager_id: string | null; budget_mad: number | null; notes: string | null;
+  end_at: string | null; teardown_at: string | null; manager_id: string | null; notes: string | null;
   created_by: string | null; created_at: string;
 }
 export interface AttendanceDay {
@@ -44,4 +44,10 @@ export interface NotificationRow {
 }
 export interface LeaveRequest {
   id: string; employee_id: string; leave_type: string; start_date: string; end_date: string; status: string; comment: string | null;
+  reviewed_by?: string | null; reviewed_at?: string | null; review_comment?: string | null; created_at?: string;
 }
+
+export type EventFinance = {
+  event_id: string; budget_mad: number | null; quote_mad: number | null; paid_mad: number | null;
+  payment_status: "non_paye" | "acompte" | "paye"; notes: string | null; updated_at: string;
+};

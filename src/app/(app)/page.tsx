@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, ArrowUpRight } from "lucide-react";
+import { AlarmClock, AlertTriangle, ArrowUpRight, Ban, CalendarHeart, Eye, ListChecks, Plane, Sparkles, Timer, UserCheck, UserX, Users } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
@@ -19,7 +19,7 @@ import { DONE_STATUSES, EVENT_STATUS, EVENT_TYPE, LEAVE_TYPE, TASK_STATUS } from
 import { isOverdue, sortTasks } from "@/lib/tasks";
 import type { AttendanceDay, EventRow, LeaveRequest, Task } from "@/lib/types";
 
-export const metadata = { title: "Dashboard" };
+export const metadata = { title: "Tableau de bord" };
 
 interface Urgent { level: "critique" | "attention"; title: string; detail: string; href: string; who?: string }
 
@@ -40,6 +40,8 @@ export default async function Dashboard() {
     supabase.from("events").select("*").gte("event_date", today).lte("event_date", addDays(today, 14)).neq("status", "annule").order("event_date"),
   ]);
   const scope = attendanceScope(s, employees);
+  const { count: pendingCount } = await supabase.from("leave_requests").select("id", { count: "exact", head: true }).eq("status", "en_attente").neq("employee_id", s.employee.id);
+  const pendingLeaves = pendingCount ?? 0;
   const people = new Map(employees.map((e) => [e.id, e]));
   const dayMap = new Map(((days ?? []) as AttendanceDay[]).map((d) => [d.employee_id, d]));
   const leaveMap = new Map(((leaves ?? []) as LeaveRequest[]).map((l) => [l.employee_id, LEAVE_TYPE[l.leave_type]]));
@@ -77,6 +79,7 @@ export default async function Dashboard() {
   for (const t of blocked) urgent.push({ level: "critique", title: `Tâche bloquée : ${t.title}`, detail: t.blocked_reason ?? "", href: `/taches/${t.id}`, who: t.assignee_id ? fullName(people.get(t.assignee_id)) : undefined });
   for (const t of toVerify.filter((x) => x.submitted_at && Date.now() - Date.parse(x.submitted_at) > 24 * 3600e3)) urgent.push({ level: "attention", title: `En attente de validation depuis plus de 24 h : ${t.title}`, detail: "", href: `/taches/${t.id}` });
   for (const l of live.filter((x) => x.st.key === "missing")) urgent.push({ level: "attention", title: `${fullName(l.e)} n'est pas arrivé(e)`, detail: l.st.label, href: `/pointage/${l.e.id}` });
+  if (pendingLeaves) urgent.push({ level: "attention", title: `${pendingLeaves} demande(s) de congé à valider`, detail: "Congés & absences", href: "/conges?vue=validation" });
   urgent.sort((a, b) => (a.level === b.level ? 0 : a.level === "critique" ? -1 : 1));
 
   return (
@@ -88,28 +91,28 @@ export default async function Dashboard() {
           {s.can("events.manage") && <ButtonLink href="/evenements/nouveau">Nouvel événement</ButtonLink>}
         </>} />
 
-      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-8">
-        <Stat label="Présents" value={`${present.length}/${live.filter((l) => l.st.key !== "off").length}`} href="/pointage" tone="ok" />
-        <Stat label="Retards" value={late.length} href="/pointage" tone={late.length ? "alert" : undefined} />
-        <Stat label="Absents" value={absent.length} href="/pointage" tone={absent.length ? "alert" : undefined} />
-        <Stat label="Non arrivés" value={notYet.length} href="/pointage" />
-        <Stat label="Tâches du jour" value={todayTasks.length} href="/taches?vue=ouvertes" />
-        <Stat label="En retard" value={overdue.length} href="/taches?vue=retard" tone={overdue.length ? "alert" : undefined} />
-        <Stat label="Bloquées" value={blocked.length} href="/taches?vue=bloquees" tone={blocked.length ? "warn" : undefined} />
-        <Stat label="À vérifier" value={toVerify.length} href="/taches?vue=verifier" tone={toVerify.length ? "warn" : undefined} />
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        <Stat icon={<UserCheck className="h-5 w-5" />} label="Présents" value={`${present.length}/${live.filter((l) => l.st.key !== "off").length}`} href="/pointage" tone="sage" />
+        <Stat icon={<Timer className="h-5 w-5" />} label="Retards" value={late.length} href="/pointage" tone={late.length ? "clay" : "neutral"} />
+        <Stat icon={<UserX className="h-5 w-5" />} label="Absents" value={absent.length} href="/pointage" tone={absent.length ? "rose" : "neutral"} />
+        <Stat icon={<Plane className="h-5 w-5" />} label="Congés à valider" value={pendingLeaves} href="/conges?vue=validation" tone={pendingLeaves ? "ochre" : "neutral"} hint={notYet.length ? `${notYet.length} pas encore arrivé(s)` : undefined} />
+        <Stat icon={<ListChecks className="h-5 w-5" />} label="Tâches du jour" value={todayTasks.length} href="/taches?vue=ouvertes" tone="mist" />
+        <Stat icon={<AlarmClock className="h-5 w-5" />} label="Tâches en retard" value={overdue.length} href="/taches?vue=retard" tone={overdue.length ? "clay" : "neutral"} />
+        <Stat icon={<Ban className="h-5 w-5" />} label="Bloquées" value={blocked.length} href="/taches?vue=bloquees" tone={blocked.length ? "rose" : "neutral"} />
+        <Stat icon={<Eye className="h-5 w-5" />} label="À vérifier" value={toVerify.length} href="/taches?vue=verifier" tone={toVerify.length ? "plum" : "neutral"} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">
           <Card className={urgent.length ? "border-clay-500/25" : undefined}>
-            <CardHeader title={<span className="flex items-center gap-2 tracking-wide"><AlertTriangle className="h-4 w-4 text-clay-500" />URGENT</span>}
+            <CardHeader icon={<AlertTriangle />} tone="clay" title={<span className="tracking-wide">URGENT</span>}
               subtitle={urgent.length ? `${urgent.length} point(s) remonté(s) automatiquement` : "Rien d'urgent pour le moment"} />
             {urgent.length === 0 ? <Empty title="Tout est sous contrôle." /> : (
               <ul className="divide-y divide-line">
                 {urgent.slice(0, 14).map((u, i) => (
                   <li key={i}>
                     <Link href={u.href} className="group flex items-start gap-3 px-5 py-3 hover:bg-sand-50">
-                      <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${u.level === "critique" ? "bg-clay-500" : "bg-ochre-500"}`} />
+                      <span className={`mt-1 shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase ${u.level === "critique" ? "bg-clay-100 text-clay-700" : "bg-ochre-100 text-ochre-700"}`}>{u.level === "critique" ? "Urgent" : "À voir"}</span>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium">{u.title}</p>
                         {(u.detail || u.who) && <p className="truncate text-xs text-ink-400">{u.who ? `Responsable : ${u.who}` : ""}{u.who && u.detail ? " · " : ""}{u.detail}</p>}
@@ -128,7 +131,7 @@ export default async function Dashboard() {
           </div>
 
           <Card>
-            <CardHeader title="Tâches en retard" subtitle="Par ordre d'échéance" action={<Link href="/taches?vue=retard" className="link text-xs">Tout voir</Link>} />
+            <CardHeader icon={<AlarmClock />} tone="clay" title="Tâches en retard" subtitle="Par ordre d'échéance" action={<Link href="/taches?vue=retard" className="link text-xs">Tout voir</Link>} />
             {overdue.length === 0 ? <Empty title="Aucune tâche en retard." /> : (
               <ul className="divide-y divide-line">
                 {overdue.slice(0, 8).map((t) => (
@@ -148,7 +151,7 @@ export default async function Dashboard() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Présence en direct" subtitle={`${present.length} présent(s)`} action={<Link href="/pointage" className="link text-xs">Détail</Link>} />
+            <CardHeader icon={<Users />} tone="teal" title="Présence en direct" subtitle={`${present.length} présent(s)`} action={<Link href="/pointage" className="link text-xs">Détail</Link>} />
             <ul className="divide-y divide-line">
               {live.filter((l) => l.st.key !== "off").sort((a, b) => ["missing", "late", "absent", "not_yet", "out", "present", "leave", "done"].indexOf(a.st.key) - ["missing", "late", "absent", "not_yet", "out", "present", "leave", "done"].indexOf(b.st.key)).slice(0, 12).map(({ e, st, day }) => (
                 <li key={e.id} className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm">
@@ -160,7 +163,7 @@ export default async function Dashboard() {
           </Card>
 
           <Card>
-            <CardHeader title="À valider" subtitle="Tâches soumises par l'équipe" />
+            <CardHeader icon={<Eye />} tone="plum" title="À valider" subtitle="Tâches soumises par l'équipe" />
             {toVerify.length === 0 ? <Empty title="Rien à valider." /> : (
               <ul className="divide-y divide-line">
                 {toVerify.slice(0, 8).map((t) => (
@@ -186,7 +189,7 @@ export default async function Dashboard() {
 function EventList({ title, events, teamCount, today, empty, href = "/evenements" }: { title: string; events: EventRow[]; teamCount: Map<string, number>; today: string; empty: string; href?: string }) {
   return (
     <Card>
-      <CardHeader title={title} subtitle={`${events.length} événement(s)`} action={<Link href={href} className="link text-xs">Voir</Link>} />
+      <CardHeader icon={href === "/evenements" ? <Sparkles /> : <CalendarHeart />} tone={href === "/evenements" ? "rose" : "ochre"} title={title} subtitle={`${events.length} événement(s)`} action={<Link href={href} className="link text-xs">Voir</Link>} />
       {events.length === 0 ? <Empty title={empty} /> : (
         <ul className="divide-y divide-line">
           {events.map((e) => {
@@ -194,7 +197,7 @@ function EventList({ title, events, teamCount, today, empty, href = "/evenements
             return (
               <li key={e.id}>
                 <Link href={`/evenements/${e.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-sand-50">
-                  <div className="w-14 shrink-0"><p className="text-xs font-semibold ">{formatDayShort(e.event_date)}</p><p className={`text-2xs ${d <= 2 ? "text-clay-700" : "text-ink-400"}`}>{d === 0 ? "Aujourd'hui" : `J-${d}`}</p></div>
+                  <div className={`w-14 shrink-0 rounded-xl px-1.5 py-1 text-center ${d <= 2 ? "bg-clay-50 text-clay-700" : "bg-rose-50 text-rose-700"}`}><p className="text-xs font-semibold ">{formatDayShort(e.event_date)}</p><p className="text-2xs font-medium">{d === 0 ? "Aujourd'hui" : `J-${d}`}</p></div>
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{e.name}</p><p className="truncate text-xs text-ink-400">{EVENT_TYPE[e.event_type]} · {teamCount.get(e.id) ?? 0} pers. {e.setup_at ? `· install. ${toLocalTime(e.setup_at)}` : ""}</p></div>
                   <Badge tone={EVENT_STATUS[e.status].tone}>{EVENT_STATUS[e.status].label}</Badge>
                 </Link>

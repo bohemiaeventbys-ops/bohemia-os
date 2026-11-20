@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
+import { MobileNav, Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { getSession } from "@/lib/auth";
 import { buildNav } from "@/lib/navigation";
@@ -16,9 +16,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <Sidebar {...nav} unread={count ?? 0} />
-      <div className="pl-64">
+      <MobileNav main={nav.main} bottom={nav.bottom} unread={count ?? 0} />
+      <div className="lg:pl-64">
         <Topbar employee={session.employee} unread={count ?? 0} photoUrl={session.employee.photo_path ? urls.get(session.employee.photo_path) ?? null : null} />
-        <main className="mx-auto max-w-[1400px] px-8 py-8">{children}</main>
+        <main className="mx-auto max-w-[1400px] px-4 pb-28 pt-6 sm:px-8 lg:pb-10 lg:pt-8">{children}</main>
       </div>
     </div>
   );

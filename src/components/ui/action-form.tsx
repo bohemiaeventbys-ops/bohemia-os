@@ -38,7 +38,7 @@ export function ActionForm({
 }
 
 export function SubmitButton({ children, variant = "primary", size = "md", className, name, value, formNoValidate }: {
-  children: ReactNode; variant?: "primary" | "secondary" | "ghost" | "danger" | "subtle"; size?: "sm" | "md" | "lg"; className?: string; name?: string; value?: string; formNoValidate?: boolean;
+  children: ReactNode; variant?: "primary" | "secondary" | "ghost" | "danger" | "subtle" | "success" | "warning"; size?: "sm" | "md" | "lg"; className?: string; name?: string; value?: string; formNoValidate?: boolean;
 }) {
   const { pending } = useFormStatus();
   return (

@@ -8,16 +8,17 @@ import { Avatar } from "@/components/ui/avatar";
 import { Empty } from "@/components/ui/empty";
 import { buttonClass } from "@/components/ui/button";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
-import { Input, Select } from "@/components/ui/field";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Lock } from "lucide-react";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { diffDays, formatDateTime, formatDayLong, todayISO } from "@/lib/dates";
 import { formatMAD, fullName } from "@/lib/format";
 import { DONE_STATUSES, EVENT_STATUS, EVENT_TYPE } from "@/lib/labels";
 import { sortTasks } from "@/lib/tasks";
-import type { Employee, EventRow, Task } from "@/lib/types";
+import type { Employee, EventFinance, EventRow, Task } from "@/lib/types";
 import { TaskTable } from "../../taches/task-row";
-import { addTeamMember, removeTeamMember } from "../actions";
+import { addTeamMember, removeTeamMember, saveFinances } from "../actions";
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,6 +37,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
   const canEdit = s.can("events.manage");
   const days = diffDays(e.event_date, todayISO());
+  const showMoney = s.can("finance.view");
+  const { data: fin } = showMoney ? await supabase.from("event_finances").select("*").eq("event_id", id).maybeSingle<EventFinance>() : { data: null };
   const teamIds = new Set((team ?? []).map((t) => t.employee_id));
 
   return (
@@ -54,7 +57,6 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             <CardBody className="grid gap-5 py-5 text-sm md:grid-cols-3">
               <Info label="Client">{e.client_name ?? "—"}{e.client_phone && <p className="text-ink-400">{e.client_phone}</p>}</Info>
               <Info label="Lieu">{e.address ?? "—"}</Info>
-              <Info label="Budget">{formatMAD(e.budget_mad)}</Info>
               <Info label="Responsable">{e.manager_id ? fullName(people.get(e.manager_id)) : "—"}</Info>
               <Info label="Livraison">{formatDateTime(e.delivery_at)}</Info>
               <Info label="Installation">{formatDateTime(e.setup_at)}</Info>
@@ -69,7 +71,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             <CardHeader title="Tâches de l'événement" subtitle={`${done}/${tasks.length} terminées`}
               action={<div className="flex items-center gap-2"><div className="h-1.5 w-32 overflow-hidden rounded-full bg-sand-200"><div className="h-full bg-taupe-500" style={{ width: `${pct}%` }} /></div><span className="text-xs tabular-nums text-ink-400">{pct} %</span></div>} />
             {tasks.length === 0 ? <Empty title="Aucune tâche liée.">Créez les tâches de production, logistique, décoration… depuis le bouton « Tâche ».</Empty> :
-              <TaskTable tasks={tasks} people={people} events={new Map()} />}
+              <TaskTable tasks={tasks} people={people} events={new Map()} showEvent={false} />}
           </Card>
 
           <Card>
@@ -82,6 +84,33 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="space-y-6">
+          {showMoney && (
+            <Card className="border-ochre-200">
+              <CardHeader title={<span className="flex items-center gap-2"><Lock className="h-4 w-4 text-ochre-700" /> Montants confidentiels</span>}
+                subtitle="Visible uniquement par la direction et la commerciale" />
+              <CardBody className="space-y-4">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <Money label="Budget" v={fin?.budget_mad} />
+                  <Money label="Devis" v={fin?.quote_mad} />
+                  <Money label="Payé" v={fin?.paid_mad} />
+                </div>
+                <ActionForm action={saveFinances} className="space-y-3">
+                  <input type="hidden" name="id" value={id} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Budget (DH)"><Input name="budget_mad" inputMode="decimal" defaultValue={fin?.budget_mad ?? ""} /></Field>
+                    <Field label="Devis (DH)"><Input name="quote_mad" inputMode="decimal" defaultValue={fin?.quote_mad ?? ""} /></Field>
+                    <Field label="Déjà payé (DH)"><Input name="paid_mad" inputMode="decimal" defaultValue={fin?.paid_mad ?? ""} /></Field>
+                    <Field label="Paiement"><Select name="payment_status" defaultValue={fin?.payment_status ?? "non_paye"}>
+                      <option value="non_paye">Non payé</option><option value="acompte">Acompte</option><option value="paye">Payé</option>
+                    </Select></Field>
+                  </div>
+                  <Field label="Notes"><Textarea name="finance_notes" rows={2} defaultValue={fin?.notes ?? ""} /></Field>
+                  <SubmitButton size="sm">Enregistrer les montants</SubmitButton>
+                </ActionForm>
+              </CardBody>
+            </Card>
+          )}
+
           <Card>
             <CardHeader title="Équipe" subtitle={`${team?.length ?? 0} personne(s)`} />
             {(team ?? []).length === 0 ? <Empty title="Aucune personne assignée." /> : (
@@ -124,4 +153,13 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
 function Info({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return <div className={className}><p className="label">{label}</p><div>{children}</div></div>;
+}
+
+function Money({ label, v }: { label: string; v: number | null | undefined }) {
+  return (
+    <div className="rounded-xl bg-ochre-50 px-2 py-3">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-ochre-700">{label}</p>
+      <p className="mt-1 text-sm font-semibold tabular-nums">{formatMAD(v ?? null)}</p>
+    </div>
+  );
 }

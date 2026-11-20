@@ -16,7 +16,6 @@ function ts(fd: FormData, date: string, key: string) {
 function payload(fd: FormData) {
   const date = str(fd, "event_date");
   if (!date) return null;
-  const budget = str(fd, "budget_mad");
   return {
     name: str(fd, "name"),
     event_type: str(fd, "event_type") ?? "autre",
@@ -31,7 +30,6 @@ function payload(fd: FormData) {
     end_at: ts(fd, date, "end"),
     teardown_at: ts(fd, date, "teardown"),
     manager_id: str(fd, "manager_id"),
-    budget_mad: budget ? Number(budget.replace(/\s/g, "").replace(",", ".")) : null,
     notes: str(fd, "notes"),
   };
 }
@@ -78,4 +76,32 @@ export async function removeTeamMember(_: ActionResult, fd: FormData): Promise<A
   if (error) return fail(error);
   revalidatePath(`/evenements/${id}`);
   return { ok: "Retiré." };
+}
+
+function amount(fd: FormData, key: string) {
+  const v = str(fd, key);
+  if (!v) return null;
+  const n = Number(v.replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+export async function saveFinances(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const s = await requireSession();
+  if (!s.can("finance.view")) return { error: "Réservé à la direction et à la commerciale." };
+  const id = str(fd, "id");
+  if (!id) return { error: "Événement introuvable." };
+  const status = str(fd, "payment_status") ?? "non_paye";
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_finances").upsert({
+    event_id: id,
+    budget_mad: amount(fd, "budget_mad"),
+    quote_mad: amount(fd, "quote_mad"),
+    paid_mad: amount(fd, "paid_mad"),
+    payment_status: ["non_paye", "acompte", "paye"].includes(status) ? status : "non_paye",
+    notes: str(fd, "finance_notes"),
+  });
+  if (error) return fail(error);
+  revalidatePath(`/evenements/${id}`);
+  revalidatePath("/evenements");
+  return { ok: "Montants enregistrés." };
 }

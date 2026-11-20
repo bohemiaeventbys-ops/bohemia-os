@@ -1,3 +1,4 @@
+import { Hourglass, LogOut, Plane, Timer, UserCheck, UserX } from "lucide-react";
 import Link from "next/link";
 import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -75,12 +76,12 @@ async function Live({ employees, departments, schedules, dept }: { employees: Em
     <>
       <AutoRefresh seconds={30} />
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        <Stat label="Présents" value={count(["present", "late", "out"])} tone="ok" />
-        <Stat label="En retard" value={count(["late", "missing"])} tone={count(["late", "missing"]) ? "alert" : undefined} />
-        <Stat label="Pas encore arrivés" value={count(["not_yet", "missing"])} />
-        <Stat label="Absents" value={count(["absent"])} tone={count(["absent"]) ? "alert" : undefined} />
-        <Stat label="Congés" value={count(["leave"])} />
-        <Stat label="Partis" value={count(["done"])} />
+        <Stat icon={<UserCheck className="h-5 w-5" />} label="Présents" value={count(["present", "late", "out"])} tone="sage" />
+        <Stat icon={<Timer className="h-5 w-5" />} label="En retard" value={count(["late", "missing"])} tone={count(["late", "missing"]) ? "clay" : "neutral"} />
+        <Stat icon={<Hourglass className="h-5 w-5" />} label="Pas encore arrivés" value={count(["not_yet", "missing"])} tone="ochre" />
+        <Stat icon={<UserX className="h-5 w-5" />} label="Absents" value={count(["absent"])} tone={count(["absent"]) ? "rose" : "neutral"} />
+        <Stat icon={<Plane className="h-5 w-5" />} label="Congés" value={count(["leave"])} tone="mist" href="/conges?vue=historique" />
+        <Stat icon={<LogOut className="h-5 w-5" />} label="Partis" value={count(["done"])} tone="plum" />
       </div>
       <Card>
         <CardHeader title={<span>{formatDayLong(today)}</span>} subtitle="Mise à jour automatique toutes les 30 secondes"

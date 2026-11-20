@@ -23,11 +23,12 @@ const STATUS_TEXT: Record<string, string> = {
   sortie_autorisee: "Sortie autorisée",
   journee_terminee: "Journée terminée",
 };
-const ACTIONS: { kind: PunchKind; label: string; icon: typeof LogIn; allowed: (last: PunchKind | null) => boolean; primary?: boolean }[] = [
-  { kind: "arrivee", label: "ARRIVÉE", icon: LogIn, allowed: (l) => l === null, primary: true },
-  { kind: "sortie", label: "SORTIE AUTORISÉE", icon: PauseCircle, allowed: (l) => l === "arrivee" || l === "retour" },
-  { kind: "retour", label: "RETOUR", icon: PlayCircle, allowed: (l) => l === "sortie", primary: true },
-  { kind: "depart", label: "DÉPART", icon: LogOut, allowed: (l) => l === "arrivee" || l === "retour", primary: true },
+// Une couleur par action : on reconnaît le bon bouton sans lire.
+const ACTIONS: { kind: PunchKind; label: string; icon: typeof LogIn; allowed: (last: PunchKind | null) => boolean; color: string }[] = [
+  { kind: "arrivee", label: "ARRIVÉE", icon: LogIn, allowed: (l) => l === null, color: "bg-sage-600 hover:bg-sage-700 text-white" },
+  { kind: "sortie", label: "SORTIE AUTORISÉE", icon: PauseCircle, allowed: (l) => l === "arrivee" || l === "retour", color: "bg-ochre-500 hover:bg-ochre-600 text-white" },
+  { kind: "retour", label: "RETOUR", icon: PlayCircle, allowed: (l) => l === "sortie", color: "bg-mist-600 hover:bg-mist-700 text-white" },
+  { kind: "depart", label: "DÉPART", icon: LogOut, allowed: (l) => l === "arrivee" || l === "retour", color: "bg-clay-500 hover:bg-clay-600 text-white" },
 ];
 
 function useClock() {
@@ -112,10 +113,10 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
       <header className="flex items-center justify-between border-b border-line px-12 py-6">
         <div className="flex items-baseline gap-2">
           <span className="font-display text-3xl font-semibold tracking-[0.16em]">BOHEMIA</span>
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-taupe-500">Pointage</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-teal-600">Pointage</span>
         </div>
         <div className="text-right">
-          <p className="font-display text-5xl tabular-nums leading-none text-ink">{time}</p>
+          <p className="font-display text-5xl leading-none text-ink [font-variant-numeric:lining-nums_tabular-nums]">{time}</p>
           <p className="mt-1 text-sm text-ink-400">{date}</p>
         </div>
       </header>
@@ -128,7 +129,7 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
               <>
                 <p className="text-sm uppercase tracking-[0.2em] text-taupe-500">{ACTIONS.find((a) => a.kind === result.kind)?.label} enregistrée</p>
                 <p className="mt-4 font-display text-5xl text-ink">{result.employee}</p>
-                <p className="mt-6 font-display text-7xl tabular-nums text-ink">
+                <p className="mt-6 font-display text-7xl text-ink [font-variant-numeric:lining-nums_tabular-nums]">
                   {result.at ? new Intl.DateTimeFormat("fr-FR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(new Date(result.at)) : ""}
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm">
@@ -185,7 +186,7 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
                 k === "" ? <span key="blank" /> : (
                   <button key={k}
                     onClick={() => (k === "del" ? setPin((p) => p.slice(0, -1)) : setPin((p) => (p.length < 6 ? p + k : p)))}
-                    className="flex h-16 items-center justify-center rounded-2xl border border-line bg-white font-display text-3xl text-ink transition active:scale-95 active:bg-sand-100">
+                    className="flex h-16 items-center justify-center rounded-2xl border border-line bg-white font-display text-3xl text-ink [font-variant-numeric:lining-nums] transition active:scale-95 active:bg-sand-100">
                     {k === "del" ? <Delete className="h-6 w-6 text-ink-400" strokeWidth={1.5} /> : k}
                   </button>
                 ),
@@ -199,9 +200,9 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
                 const allowed = a.allowed(selected.last_kind);
                 return (
                   <button key={a.kind} disabled={!allowed || pin.length < 4 || pending} onClick={() => punch(a.kind)}
-                    className={cn("flex w-full items-center gap-4 rounded-2xl px-6 py-5 text-left text-lg font-medium tracking-wide transition disabled:cursor-not-allowed",
-                      !allowed ? "hidden" : a.primary ? "bg-ink text-ivory hover:bg-ink-600 disabled:opacity-40" : "border border-line-strong bg-white text-ink hover:bg-sand-50 disabled:opacity-40")}>
-                    <a.icon className="h-6 w-6" strokeWidth={1.5} />
+                    className={cn("flex w-full items-center gap-4 rounded-2xl px-6 py-6 text-left text-xl font-semibold tracking-wide transition disabled:cursor-not-allowed",
+                      !allowed ? "hidden" : cn(a.color, "shadow-card disabled:opacity-40"))}>
+                    <a.icon className="h-7 w-7" strokeWidth={1.8} />
                     {pending ? "Enregistrement…" : a.label}
                   </button>
                 );
@@ -247,8 +248,19 @@ function Face({ e, size }: { e: KioskEmployee; size: number }) {
     return <img src={e.photo_url} alt="" width={size} height={size} className="rounded-full object-cover ring-1 ring-line" style={{ width: size, height: size }} />;
   }
   return (
-    <span className="inline-flex items-center justify-center rounded-full bg-nude-100 font-display text-taupe-700 ring-1 ring-nude-200" style={{ width: size, height: size, fontSize: size * 0.38 }}>
+    <span className={cn("inline-flex items-center justify-center rounded-full font-display font-semibold ring-1", faceColor(e.first_name + e.last_name))} style={{ width: size, height: size, fontSize: size * 0.38 }}>
       {(e.first_name[0] ?? "") + (e.last_name?.[0] ?? "")}
     </span>
   );
+}
+
+const FACE_COLORS = [
+  "bg-rose-100 text-rose-700 ring-rose-200", "bg-mist-100 text-mist-700 ring-mist-200", "bg-ochre-100 text-ochre-700 ring-ochre-200",
+  "bg-sage-100 text-sage-700 ring-sage-200", "bg-plum-100 text-plum-700 ring-plum-200", "bg-clay-100 text-clay-700 ring-clay-200",
+  "bg-teal-100 text-teal-700 ring-teal-200",
+];
+function faceColor(key: string) {
+  let h = 0;
+  for (const c of key) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return FACE_COLORS[h % FACE_COLORS.length];
 }
