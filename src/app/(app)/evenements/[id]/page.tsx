@@ -41,7 +41,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <PageHeader eyebrow={<Link href="/evenements" className="hover:underline">Événements</Link>} title={e.name}
-        subtitle={<span className="flex flex-wrap items-center gap-2"><span className="capitalize">{formatDayLong(e.event_date)}</span> · {EVENT_TYPE[e.event_type]} <Badge tone={EVENT_STATUS[e.status].tone}>{EVENT_STATUS[e.status].label}</Badge>
+        subtitle={<span className="flex flex-wrap items-center gap-2"><span>{formatDayLong(e.event_date)}</span> · {EVENT_TYPE[e.event_type]} <Badge tone={EVENT_STATUS[e.status].tone}>{EVENT_STATUS[e.status].label}</Badge>
           {days >= 0 && days <= 2 && <Badge tone="clay">{days === 0 ? "Aujourd'hui" : `J-${days}`}</Badge>}</span>}
         actions={<>
           {s.can("tasks.create") && <Link href={`/taches/nouvelle?evenement=${id}&date=${e.event_date}`} className={buttonClass("secondary", "sm")}><Plus className="h-3.5 w-3.5" /> Tâche</Link>}

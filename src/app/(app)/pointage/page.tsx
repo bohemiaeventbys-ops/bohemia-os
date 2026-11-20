@@ -83,7 +83,7 @@ async function Live({ employees, departments, schedules, dept }: { employees: Em
         <Stat label="Partis" value={count(["done"])} />
       </div>
       <Card>
-        <CardHeader title={<span className="capitalize">{formatDayLong(today)}</span>} subtitle="Mise à jour automatique toutes les 30 secondes"
+        <CardHeader title={<span>{formatDayLong(today)}</span>} subtitle="Mise à jour automatique toutes les 30 secondes"
           action={
             <form className="flex items-center gap-2">
               <Select name="departement" defaultValue={dept ?? ""} className="h-9 w-56 py-1">
@@ -162,7 +162,7 @@ async function History({ sp, employees, team }: { sp: SP; employees: Employee[];
           ))}
         </div>
         <Link href={base({ date: prev })} className={buttonClass("secondary", "sm")}>←</Link>
-        <span className="min-w-[220px] text-center text-sm font-medium capitalize">{label}</span>
+        <span className="min-w-[220px] text-center text-sm font-medium ">{label}</span>
         <Link href={base({ date: next })} className={buttonClass("secondary", "sm")}>→</Link>
         {team && (
           <form className="ml-auto flex items-center gap-2">
@@ -206,7 +206,7 @@ async function History({ sp, employees, team }: { sp: SP; employees: Employee[];
             <tbody>
               {days.map((d) => (
                 <tr key={d.employee_id + d.work_date}>
-                  <td className="capitalize">{formatDayShort(d.work_date)}</td>
+                  <td>{formatDayShort(d.work_date)}</td>
                   {(team && !selectedEmp) && <td>{fullName(byEmp.get(d.employee_id))}</td>}
                   <td><Badge tone={DAY_STATUS[d.status].tone}>{DAY_STATUS[d.status].label}</Badge>{d.manual_status && <span className="ml-1 text-2xs text-ink-300">manuel</span>}</td>
                   <td className="text-ink-400">{d.scheduled_start ? `${hhmm(d.scheduled_start)} – ${hhmm(d.scheduled_end)}` : "—"}</td>
@@ -247,7 +247,7 @@ async function Corrections({ employees }: { employees: Employee[] }) {
                 <td className="text-ink-500">{formatDateTime(c.corrected_at)}</td>
                 <td>{fullName(byId.get(c.employee_id))}</td>
                 <td><Link className="link" href={`/pointage/${c.employee_id}?date=${c.work_date}`}>{formatDate(c.work_date)}</Link></td>
-                <td className="capitalize">{c.action}</td>
+                <td>{c.action}</td>
                 <td className="text-ink-400">{describe(c.old_value)}</td>
                 <td>{describe(c.new_value)}</td>
                 <td className="max-w-xs">{c.reason}</td>

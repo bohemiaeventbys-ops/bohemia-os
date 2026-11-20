@@ -104,7 +104,8 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
   }
 
   const time = now ? new Intl.DateTimeFormat("fr-FR", { timeZone: TZ, hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(now) : "";
-  const date = now ? new Intl.DateTimeFormat("fr-FR", { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(now) : "";
+  const dateRaw = now ? new Intl.DateTimeFormat("fr-FR", { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(now) : "";
+  const date = dateRaw.charAt(0).toUpperCase() + dateRaw.slice(1);
 
   return (
     <div className="flex min-h-screen select-none flex-col bg-ivory">
@@ -115,7 +116,7 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
         </div>
         <div className="text-right">
           <p className="font-display text-5xl tabular-nums leading-none text-ink">{time}</p>
-          <p className="mt-1 text-sm capitalize text-ink-400">{date}</p>
+          <p className="mt-1 text-sm text-ink-400">{date}</p>
         </div>
       </header>
 

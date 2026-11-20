@@ -82,7 +82,7 @@ export default async function Dashboard() {
   return (
     <>
       <AutoRefresh seconds={60} />
-      <PageHeader eyebrow={<span className="capitalize">{formatDayLong(today)}</span>} title="Tableau de bord" subtitle="Ce qui demande votre attention aujourd'hui."
+      <PageHeader eyebrow={<span>{formatDayLong(today)}</span>} title="Tableau de bord" subtitle="Ce qui demande votre attention aujourd'hui."
         actions={<>
           {s.can("tasks.create") && <ButtonLink href="/taches/nouvelle" variant="secondary">Nouvelle tâche</ButtonLink>}
           {s.can("events.manage") && <ButtonLink href="/evenements/nouveau">Nouvel événement</ButtonLink>}
@@ -194,7 +194,7 @@ function EventList({ title, events, teamCount, today, empty, href = "/evenements
             return (
               <li key={e.id}>
                 <Link href={`/evenements/${e.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-sand-50">
-                  <div className="w-14 shrink-0"><p className="text-xs font-semibold capitalize">{formatDayShort(e.event_date)}</p><p className={`text-2xs ${d <= 2 ? "text-clay-700" : "text-ink-400"}`}>{d === 0 ? "Aujourd'hui" : `J-${d}`}</p></div>
+                  <div className="w-14 shrink-0"><p className="text-xs font-semibold ">{formatDayShort(e.event_date)}</p><p className={`text-2xs ${d <= 2 ? "text-clay-700" : "text-ink-400"}`}>{d === 0 ? "Aujourd'hui" : `J-${d}`}</p></div>
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{e.name}</p><p className="truncate text-xs text-ink-400">{EVENT_TYPE[e.event_type]} · {teamCount.get(e.id) ?? 0} pers. {e.setup_at ? `· install. ${toLocalTime(e.setup_at)}` : ""}</p></div>
                   <Badge tone={EVENT_STATUS[e.status].tone}>{EVENT_STATUS[e.status].label}</Badge>
                 </Link>

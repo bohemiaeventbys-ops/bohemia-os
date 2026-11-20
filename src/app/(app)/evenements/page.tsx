@@ -59,7 +59,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                 const days = diffDays(e.event_date, today);
                 return (
                   <tr key={e.id}>
-                    <td className="whitespace-nowrap"><p className="font-medium capitalize">{formatDayShort(e.event_date)}</p><p className="text-xs text-ink-400">{vue === "avenir" ? (days === 0 ? "Aujourd'hui" : days === 1 ? "Demain" : `Dans ${days} j`) : ""}{e.start_at ? ` · ${toLocalTime(e.start_at)}` : ""}</p></td>
+                    <td className="whitespace-nowrap"><p className="font-medium ">{formatDayShort(e.event_date)}</p><p className="text-xs text-ink-400">{vue === "avenir" ? (days === 0 ? "Aujourd'hui" : days === 1 ? "Demain" : `Dans ${days} j`) : ""}{e.start_at ? ` · ${toLocalTime(e.start_at)}` : ""}</p></td>
                     <td><Link href={`/evenements/${e.id}`} className="font-medium hover:underline">{e.name}</Link><p className="text-xs text-ink-400">{e.client_name ?? ""}</p></td>
                     <td className="text-ink-500">{EVENT_TYPE[e.event_type]}</td>
                     <td className="max-w-[200px] truncate text-ink-500">{e.address ?? "—"}</td>

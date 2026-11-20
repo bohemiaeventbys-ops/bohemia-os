@@ -43,7 +43,7 @@ export default async function EmployeeAttendance({ params, searchParams }: { par
   return (
     <>
       <PageHeader eyebrow={<Link href="/pointage" className="hover:underline">Pointage</Link>} title={fullName(emp)}
-        subtitle={<span className="capitalize">{formatDayLong(date)}{sched ? ` · horaire prévu ${sched.start} – ${sched.end} (tolérance ${sched.grace} min)` : " · jour non travaillé"}</span>}
+        subtitle={<span>{formatDayLong(date)}{sched ? ` · horaire prévu ${sched.start} – ${sched.end} (tolérance ${sched.grace} min)` : " · jour non travaillé"}</span>}
         actions={<>
           <Link href={`?date=${addDays(date, -1)}`} className={buttonClass("secondary", "sm")}>← Veille</Link>
           <Link href={`?date=${todayISO()}`} className={buttonClass("secondary", "sm")}>Aujourd&apos;hui</Link>
@@ -106,7 +106,7 @@ export default async function EmployeeAttendance({ params, searchParams }: { par
               <ul className="divide-y divide-line">
                 {corrections.map((c) => (
                   <li key={c.id} className="px-5 py-3 text-sm">
-                    <p><span className="font-medium capitalize">{c.action}</span> par {names.get(c.corrected_by) ?? "—"} · <span className="text-ink-400">{formatDateTime(c.corrected_at)}</span></p>
+                    <p><span className="font-medium ">{c.action}</span> par {names.get(c.corrected_by) ?? "—"} · <span className="text-ink-400">{formatDateTime(c.corrected_at)}</span></p>
                     <p className="mt-0.5 text-ink-500">Motif : {c.reason}</p>
                   </li>
                 ))}

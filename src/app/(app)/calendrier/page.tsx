@@ -113,7 +113,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
             <Link key={k} href={qs({ vue: k })} className={cn("rounded-md px-3 py-1.5 text-sm", vue === k ? "bg-ink text-ivory" : "text-ink-500 hover:bg-sand-100")}>{l}</Link>
           ))}
         </div>
-        <p className="font-display text-2xl capitalize">{label}</p>
+        <p className="font-display text-2xl ">{label}</p>
         <div className="ml-auto flex flex-wrap gap-1.5 text-xs">
           {[["evenements", "Événements"], ["logistique", "Livraisons / installations"], ["taches", "Tâches"], ["conges", "Congés"]].map(([k, l]) => (
             <Link key={k} href={toggle(k)} className={cn("rounded-full border px-3 py-1", show.has(k) ? "border-ink bg-ink text-ivory" : "border-line bg-white text-ink-400")}>{l}</Link>
@@ -157,7 +157,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
         <div className="grid grid-cols-7 gap-3">
           {Array.from({ length: 7 }, (_, i) => addDays(from, i)).map((d) => (
             <div key={d} className={cn("card min-h-[420px] p-2", d === today && "ring-2 ring-nude-200")}>
-              <Link href={qs({ vue: "jour", date: d })} className="mb-2 block px-1 text-xs font-semibold capitalize hover:underline">{formatDayShort(d)}</Link>
+              <Link href={qs({ vue: "jour", date: d })} className="mb-2 block px-1 text-xs font-semibold hover:underline">{formatDayShort(d)}</Link>
               <div className="space-y-1">{byDate(d).map((it, k) => <Chip key={k} it={it} full />)}</div>
             </div>
           ))}
@@ -166,7 +166,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
       {vue === "jour" && (
         <Card>
-          <CardHeader title={<span className="capitalize">{formatDayLong(ref)}</span>} subtitle={`${byDate(ref).length} élément(s)`} />
+          <CardHeader title={<span>{formatDayLong(ref)}</span>} subtitle={`${byDate(ref).length} élément(s)`} />
           {byDate(ref).length === 0 ? <Empty title="Rien de prévu ce jour." /> : (
             <ul className="divide-y divide-line">
               {byDate(ref).map((it, k) => (
@@ -196,7 +196,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                 <div className="grid grid-cols-3 divide-x divide-line">
                   {wdays.map((d) => (
                     <div key={d} className="min-h-[160px] p-3">
-                      <p className="mb-2 text-xs font-semibold capitalize text-ink-500">{formatDayShort(d)}</p>
+                      <p className="mb-2 text-xs font-semibold text-ink-500">{formatDayShort(d)}</p>
                       <div className="space-y-1.5">{byDate(d).filter((i) => i.kind !== "tache").map((it, k) => <Chip key={k} it={it} full />)}</div>
                     </div>
                   ))}

@@ -78,7 +78,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
                 const evs = (events ?? []).filter((e) => e.event_date === d);
                 return (
                   <th key={d} className={cn("border-b border-l border-line px-2 py-2 text-left align-top", d === today ? "bg-nude-100" : "bg-sand-50", d >= days[5] && "bg-sand-100")}>
-                    <p className="text-xs font-semibold capitalize text-ink">{formatDayShort(d)}</p>
+                    <p className="text-xs font-semibold text-ink">{formatDayShort(d)}</p>
                     {evs.map((e) => <Link key={e.id} href={`/evenements/${e.id}`} className="mt-1 block truncate rounded bg-ink px-1.5 py-0.5 text-[10px] font-medium text-ivory">{e.name}</Link>)}
                   </th>
                 );

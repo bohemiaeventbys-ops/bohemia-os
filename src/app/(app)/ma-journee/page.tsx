@@ -60,7 +60,7 @@ export default async function MaJournee({ searchParams }: { searchParams: Promis
       {sp.acces === "refuse" && <p className="mb-6 rounded-lg bg-ochre-100 px-4 py-2.5 text-sm text-ochre-700">Cette page n&apos;est pas accessible avec votre profil.</p>}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="mb-1 text-xs font-medium uppercase tracking-[0.18em] text-taupe-500 capitalize">{formatDayLong(today)}</p>
+          <p className="mb-1 text-xs font-medium uppercase tracking-[0.18em] text-taupe-500 ">{formatDayLong(today)}</p>
           <h1 className="font-display text-4xl font-medium">Bonjour {me.first_name}</h1>
           <p className="mt-1.5 text-sm text-ink-400">
             {todayTasks.length + overdue.length === 0 ? "Rien de prévu aujourd'hui pour l'instant." : `${todayTasks.length} tâche(s) aujourd'hui${overdue.length ? ` · ${overdue.length} en retard` : ""}.`}

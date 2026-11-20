@@ -15,7 +15,7 @@ export function Topbar({ employee, unread, photoUrl }: { employee: Employee; unr
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" strokeWidth={1.5} />
         <input name="q" placeholder="Rechercher un employé, une tâche, un événement…" className="field h-10 border-line bg-white/70 pl-9" />
       </form>
-      <p className="hidden text-sm capitalize text-ink-400 xl:block">{today}</p>
+      <p className="hidden text-sm text-ink-400 xl:block">{today}</p>
       <div className="ml-auto flex items-center gap-4">
         <Link href="/notifications" className="relative rounded-lg p-2 text-ink-400 transition hover:bg-sand-100 hover:text-ink" aria-label="Notifications">
           <Bell className="h-5 w-5" strokeWidth={1.5} />

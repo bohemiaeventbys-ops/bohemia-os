@@ -9,6 +9,7 @@
     font-feature-settings: "cv11", "ss01";
   }
   h1, h2, h3 { @apply text-ink; }
+  .font-display { font-variant-numeric: lining-nums; }
   ::selection { @apply bg-nude-200; }
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0.5; }

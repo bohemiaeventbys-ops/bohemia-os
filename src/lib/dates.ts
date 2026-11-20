@@ -81,6 +81,10 @@ export function isValidISODate(s: unknown): s is string {
   return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
 
+function cap(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 const fmtCache = new Map<string, Intl.DateTimeFormat>();
 function fmt(opts: Intl.DateTimeFormatOptions) {
   const k = JSON.stringify(opts);
@@ -92,11 +96,11 @@ function isoToUTCDate(iso: string) {
 }
 /** « vendredi 20 novembre » */
 export function formatDayLong(iso: string): string {
-  return fmt({ weekday: "long", day: "numeric", month: "long" }).format(isoToUTCDate(iso));
+  return cap(fmt({ weekday: "long", day: "numeric", month: "long" }).format(isoToUTCDate(iso)));
 }
 /** « ven. 20 nov. » */
 export function formatDayShort(iso: string): string {
-  return fmt({ weekday: "short", day: "numeric", month: "short" }).format(isoToUTCDate(iso));
+  return cap(fmt({ weekday: "short", day: "numeric", month: "short" }).format(isoToUTCDate(iso)));
 }
 /** « 20/11/2026 » */
 export function formatDate(iso: string | null | undefined): string {
@@ -105,7 +109,7 @@ export function formatDate(iso: string | null | undefined): string {
 }
 /** « novembre 2026 » */
 export function formatMonth(iso: string): string {
-  return fmt({ month: "long", year: "numeric" }).format(isoToUTCDate(iso));
+  return cap(fmt({ month: "long", year: "numeric" }).format(isoToUTCDate(iso)));
 }
 export function formatDateTime(ts: string | null | undefined): string {
   if (!ts) return "—";
