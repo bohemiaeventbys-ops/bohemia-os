@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { color-scheme: light; }
+  body {
+    @apply bg-ivory text-ink font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3 { @apply text-ink; }
+  ::selection { @apply bg-nude-200; }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0.5; }
+}
+
+@layer components {
+  .field {
+    @apply block w-full rounded-lg border border-line-strong bg-white px-3 py-2 text-sm text-ink
+      placeholder:text-ink-300 transition focus:border-taupe-400 focus:outline-none focus:ring-2 focus:ring-nude-200;
+  }
+  .label { @apply mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-400; }
+  .card { @apply rounded-2xl border border-line bg-white shadow-card; }
+  .table-base { @apply w-full text-sm; }
+  .table-base thead th { @apply border-b border-line bg-sand-50 px-4 py-2.5 text-left text-2xs font-semibold uppercase tracking-wider text-ink-400; }
+  .table-base tbody td { @apply border-b border-line/70 px-4 py-3 align-middle; }
+  .table-base tbody tr:last-child td { @apply border-b-0; }
+  .table-base tbody tr { @apply transition-colors hover:bg-sand-50/60; }
+  .link { @apply text-taupe-600 underline-offset-4 hover:text-ink hover:underline; }
+}
