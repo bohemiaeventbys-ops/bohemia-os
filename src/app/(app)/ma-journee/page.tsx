@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Bell, CalendarDays, Check, Clock, FileText, Flame, ListChecks, Plane, Play, Send, Sun } from "lucide-react";
+import { AlertTriangle, Bell, CalendarDays, Check, Clock, FileText, Flame, ListChecks, Plane, Play, Send, Sun, Warehouse } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toneTile } from "@/components/ui/badge";
 import type { Tone } from "@/lib/labels";
@@ -80,7 +80,9 @@ export default async function MaJournee({ searchParams }: { searchParams: Promis
         <QuickTile href="/taches?vue=miennes" tone="sage" icon={<ListChecks />} label="Mes tâches" hint={`${tasks.length} en cours`} />
         <QuickTile href="/conges?nouveau=1" tone="clay" icon={<Plane />} label="Demander un congé" hint="Congé, maladie, absence…" />
         <QuickTile href="/pointage" tone="teal" icon={<Clock />} label="Mon pointage" hint="Mes heures" />
-        <QuickTile href="/calendrier" tone="mist" icon={<CalendarDays />} label="Calendrier" hint={`${events.length} événement(s) à venir`} />
+        {s.can("stock.move") || s.can("stock.manage")
+          ? <QuickTile href="/stock?vue=sorties" tone="ochre" icon={<Warehouse />} label="Matériel" hint="À préparer, charger, faire revenir" />
+          : <QuickTile href="/calendrier" tone="mist" icon={<CalendarDays />} label="Calendrier" hint={`${events.length} événement(s) à venir`} />}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">

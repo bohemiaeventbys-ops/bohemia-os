@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { NavItem } from "@/lib/navigation";
 import { toneTile } from "@/components/ui/badge";
@@ -52,23 +54,51 @@ export function Sidebar({ main, upcoming, bottom, unread }: { main: NavItem[]; u
   );
 }
 
-/** Sur téléphone et tablette : grosse barre d'onglets en bas de l'écran, avec icônes et noms. */
+/** Sur téléphone et tablette : grosse barre d'onglets en bas (4 raccourcis + « Plus »). */
 export function MobileNav({ main, bottom, unread }: { main: NavItem[]; bottom: NavItem[]; unread: number }) {
   const pathname = usePathname();
-  const SHORT: Record<string, string> = { dashboard: "Accueil", "ma-journee": "Ma journée", calendrier: "Agenda", evenements: "Événements", taches: "Tâches", equipe: "Équipe", pointage: "Pointage", conges: "Congés" };
-  const items = main;
-  void bottom; void unread;
+  const [open, setOpen] = useState(false);
+  const SHORT: Record<string, string> = { dashboard: "Accueil", "ma-journee": "Ma journée", calendrier: "Agenda", evenements: "Événements", taches: "Tâches", equipe: "Équipe", pointage: "Pointage", stock: "Stock", conges: "Congés" };
+  const PRIORITY = ["dashboard", "ma-journee", "taches", "stock", "evenements", "calendrier", "conges", "pointage", "equipe"];
+  const sorted = [...main].sort((a, b) => PRIORITY.indexOf(a.key) - PRIORITY.indexOf(b.key));
+  const visible = sorted.slice(0, 4);
+  const rest = [...sorted.slice(4), ...bottom];
+  const restActive = rest.some((i) => isActive(pathname, i.href));
+  const tab = (i: NavItem, active: boolean) => (
+    <>
+      <span className={cn("tile h-9 w-9", active ? toneTile[i.tone ?? "neutral"] : "text-ink-300")}><NavIcon name={i.icon} className="h-5 w-5" /></span>
+      <span className={cn("truncate", active && "text-ink")}>{SHORT[i.key] ?? i.label}</span>
+    </>
+  );
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-line bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 backdrop-blur lg:hidden">
-      {items.map((i) => {
-        const active = isActive(pathname, i.href);
-        return (
-          <Link key={i.key} href={i.href} className="relative flex min-w-[60px] flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ink-500">
-            <span className={cn("tile h-9 w-9", active ? toneTile[i.tone ?? "neutral"] : "text-ink-300")}><NavIcon name={i.icon} className="h-5 w-5" /></span>
-            <span className={cn("truncate", active && "text-ink")}>{SHORT[i.key] ?? i.label}</span>
+    <>
+      {open && (
+        <div className="fixed inset-0 z-40 bg-ink/30 lg:hidden" onClick={() => setOpen(false)}>
+          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-ivory p-4 pb-[max(env(safe-area-inset-bottom),16px)] shadow-pop" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-line-strong" />
+            <div className="grid grid-cols-3 gap-2">
+              {rest.map((i) => (
+                <Link key={i.key} href={i.href} onClick={() => setOpen(false)} className="relative flex flex-col items-center gap-1.5 rounded-2xl bg-white px-2 py-3 text-xs font-semibold text-ink-600 ring-1 ring-line">
+                  <span className={cn("tile h-11 w-11", toneTile[i.tone ?? "neutral"])}><NavIcon name={i.icon} className="h-6 w-6" /></span>
+                  <span className="text-center leading-tight">{i.label}</span>
+                  {i.key === "notifications" && unread > 0 && <span className="absolute right-3 top-2 rounded-full bg-clay-500 px-1.5 text-[10px] font-bold text-white">{unread}</span>}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 backdrop-blur lg:hidden">
+        {visible.map((i) => (
+          <Link key={i.key} href={i.href} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ink-500">
+            {tab(i, isActive(pathname, i.href))}
           </Link>
-        );
-      })}
-    </nav>
+        ))}
+        <button type="button" onClick={() => setOpen(true)} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ink-500">
+          <span className={cn("tile h-9 w-9", restActive ? "bg-ink text-ivory" : "text-ink-300")}><Menu className="h-5 w-5" /></span>
+          <span className={cn(restActive && "text-ink")}>Plus</span>
+        </button>
+      </nav>
+    </>
   );
 }

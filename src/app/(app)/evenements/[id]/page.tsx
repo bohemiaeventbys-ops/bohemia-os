@@ -9,7 +9,7 @@ import { Empty } from "@/components/ui/empty";
 import { buttonClass } from "@/components/ui/button";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
-import { Lock } from "lucide-react";
+import { Lock, Warehouse } from "lucide-react";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { diffDays, formatDateTime, formatDayLong, todayISO } from "@/lib/dates";
@@ -26,11 +26,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const supabase = await createClient();
   const { data: e } = await supabase.from("events").select("*").eq("id", id).maybeSingle<EventRow>();
   if (!e) notFound();
-  const [{ data: staff }, { data: team }, { data: taskData }] = await Promise.all([
+  const [{ data: staff }, { data: team }, { data: taskData }, { data: matData }] = await Promise.all([
     supabase.from("employees").select("*").eq("status", "actif").order("first_name"),
     supabase.from("event_team").select("*").eq("event_id", id),
     supabase.from("tasks").select("*").eq("event_id", id),
+    supabase.from("event_items").select("qty, status").eq("event_id", id),
   ]);
+  const mat = (matData ?? []) as { qty: number; status: string }[];
+  const matOut = mat.filter((m) => m.status === "charge" || m.status === "retourne").length;
   const people = new Map(((staff ?? []) as Employee[]).map((p) => [p.id, p]));
   const tasks = sortTasks((taskData ?? []) as Task[]);
   const done = tasks.filter((t) => DONE_STATUSES.includes(t.status)).length;
@@ -74,13 +77,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               <TaskTable tasks={tasks} people={people} events={new Map()} showEvent={false} />}
           </Card>
 
-          <Card>
-            <CardHeader title="Fiche technique, décoration, production, logistique, achats, checklist" subtitle="Phase 3" />
-            <CardBody className="text-sm text-ink-500">
-              Ces sous-sections seront ajoutées à cette fiche en Phase 3, sur la même base : les informations saisies ici une seule fois
-              alimenteront la production, le dépôt, le transport et les achats.
-            </CardBody>
-          </Card>
+          <Link href={`/evenements/${id}/materiel`} className="card flex items-center gap-4 px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-pop">
+            <span className="tile h-12 w-12 bg-ochre-100 text-ochre-700"><Warehouse className="h-6 w-6" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-semibold">Matériel de l&apos;événement</span>
+              <span className="block text-sm text-ink-500">{mat.length ? `${mat.length} article(s) · ${mat.reduce((a, m) => a + m.qty, 0)} pièces · ${matOut} chargé(s)` : "Aucun matériel prévu : ajoutez panneaux, tables, vases, lumières…"}</span>
+            </span>
+            <span className={buttonClass("secondary", "sm")}>Ouvrir</span>
+          </Link>
         </div>
 
         <div className="space-y-6">
