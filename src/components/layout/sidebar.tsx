@@ -58,7 +58,7 @@ export function Sidebar({ main, upcoming, bottom, unread }: { main: NavItem[]; u
 export function MobileNav({ main, bottom, unread }: { main: NavItem[]; bottom: NavItem[]; unread: number }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const SHORT: Record<string, string> = { dashboard: "Accueil", "ma-journee": "Ma journée", calendrier: "Agenda", evenements: "Événements", taches: "Tâches", equipe: "Équipe", pointage: "Pointage", stock: "Stock", conges: "Congés", achats: "Achats", fournisseurs: "Fournisseurs" };
+  const SHORT: Record<string, string> = { dashboard: "Accueil", "ma-journee": "Ma journée", calendrier: "Agenda", evenements: "Événements", taches: "Tâches", equipe: "Équipe", pointage: "Pointage", stock: "Stock", conges: "Congés", achats: "Achats", fournisseurs: "Fournisseurs", clients: "Clients", devis: "Devis" };
   const PRIORITY = ["dashboard", "ma-journee", "taches", "stock", "evenements", "calendrier", "conges", "pointage", "equipe"];
   const sorted = [...main].sort((a, b) => PRIORITY.indexOf(a.key) - PRIORITY.indexOf(b.key));
   const visible = sorted.slice(0, 4);

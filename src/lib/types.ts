@@ -26,7 +26,7 @@ export interface Task {
   completed_at: string | null; created_by: string | null; created_at: string; updated_at: string; source_task_id: string | null;
 }
 export interface EventRow {
-  id: string; name: string; event_type: EventType; status: EventStatus; client_name: string | null; client_phone: string | null;
+  id: string; name: string; event_type: EventType; status: EventStatus; client_name: string | null; client_phone: string | null; client_id?: string | null;
   event_date: string; address: string | null; delivery_at: string | null; setup_at: string | null; start_at: string | null;
   end_at: string | null; teardown_at: string | null; manager_id: string | null; notes: string | null;
   created_by: string | null; created_at: string;

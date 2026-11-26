@@ -16,14 +16,14 @@ export default async function EditEvent({ params }: { params: Promise<{ id: stri
   const supabase = await createClient();
   const { data: e } = await supabase.from("events").select("*").eq("id", id).maybeSingle<EventRow>();
   if (!e) notFound();
-  const employees = await loadEmployees(supabase);
+  const [employees, { data: clients }] = await Promise.all([loadEmployees(supabase), supabase.from("clients").select("id, name, phone").order("name")]);
   return (
     <>
       <PageHeader eyebrow={<Link href={`/evenements/${id}`} className="hover:underline">{e.name}</Link>} title="Modifier l'événement" />
       <Card className="max-w-5xl"><CardBody className="py-6">
         <ActionForm action={updateEvent}>
           <input type="hidden" name="id" value={id} />
-          <EventFields e={e} employees={employees} />
+          <EventFields e={e} employees={employees} clients={clients ?? []} />
           <div className="mt-6 flex justify-end"><SubmitButton>Enregistrer</SubmitButton></div>
         </ActionForm>
       </CardBody></Card>

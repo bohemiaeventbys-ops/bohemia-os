@@ -9,16 +9,17 @@ import { createEvent } from "../actions";
 
 export const metadata = { title: "Nouvel événement" };
 
-export default async function NewEvent() {
+export default async function NewEvent({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
+  const sp = await searchParams;
   await requirePerm("events.manage");
   const supabase = await createClient();
-  const employees = await loadEmployees(supabase);
+  const [employees, { data: clients }] = await Promise.all([loadEmployees(supabase), supabase.from("clients").select("id, name, phone").order("name")]);
   return (
     <>
       <PageHeader eyebrow="Événements" title="Nouvel événement" subtitle="L'événement apparaît immédiatement dans le calendrier et peut recevoir des tâches et une équipe." />
       <Card className="max-w-5xl"><CardBody className="py-6">
         <ActionForm action={createEvent}>
-          <EventFields employees={employees} />
+          <EventFields employees={employees} clients={clients ?? []} clientId={sp.client} />
           <div className="mt-6 flex justify-end"><SubmitButton>Créer l&apos;événement</SubmitButton></div>
         </ActionForm>
       </CardBody></Card>

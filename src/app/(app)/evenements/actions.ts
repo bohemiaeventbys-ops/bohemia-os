@@ -34,11 +34,30 @@ function payload(fd: FormData) {
   };
 }
 
+/** Relie l'événement à une fiche client : choisie dans la liste, ou créée à partir du nom saisi. */
+async function withClient(supabase: Awaited<ReturnType<typeof createClient>>, fd: FormData, p: NonNullable<ReturnType<typeof payload>>) {
+  let clientId = str(fd, "client_id");
+  if (clientId) {
+    const { data: c } = await supabase.from("clients").select("name, phone").eq("id", clientId).maybeSingle();
+    if (c) return { ...p, client_id: clientId, client_name: c.name as string, client_phone: (c.phone as string | null) ?? p.client_phone };
+  }
+  if (p.client_name) {
+    const { data: found } = await supabase.from("clients").select("id").ilike("name", p.client_name).limit(1).maybeSingle();
+    if (found) clientId = found.id as string;
+    else {
+      const { data: created } = await supabase.from("clients").insert({ name: p.client_name, phone: p.client_phone }).select("id").single();
+      clientId = (created?.id as string | undefined) ?? null;
+    }
+  }
+  return { ...p, client_id: clientId };
+}
+
 export async function createEvent(_: ActionResult, fd: FormData): Promise<ActionResult> {
   const s = await requireSession();
-  const p = payload(fd);
-  if (!p?.name) return { error: "Nom et date de l'événement obligatoires." };
+  const p0 = payload(fd);
+  if (!p0?.name) return { error: "Nom et date de l'événement obligatoires." };
   const supabase = await createClient();
+  const p = await withClient(supabase, fd, p0);
   const { data, error } = await supabase.from("events").insert({ ...p, created_by: s.employee.id }).select("id").single();
   if (error) return fail(error);
   revalidatePath("/evenements");
@@ -47,9 +66,10 @@ export async function createEvent(_: ActionResult, fd: FormData): Promise<Action
 
 export async function updateEvent(_: ActionResult, fd: FormData): Promise<ActionResult> {
   const id = str(fd, "id");
-  const p = payload(fd);
-  if (!id || !p?.name) return { error: "Nom et date obligatoires." };
+  const p0 = payload(fd);
+  if (!id || !p0?.name) return { error: "Nom et date obligatoires." };
   const supabase = await createClient();
+  const p = await withClient(supabase, fd, p0);
   const { data, error } = await supabase.from("events").update(p).eq("id", id).select("id");
   if (error) return fail(error);
   if (!data?.length) return { error: "Modification non autorisée." };
