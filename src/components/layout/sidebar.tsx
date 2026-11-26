@@ -33,7 +33,7 @@ function Item({ item, pathname, badge }: { item: NavItem; pathname: string; badg
 export function Sidebar({ main, upcoming, bottom, unread }: { main: NavItem[]; upcoming: NavItem[]; bottom: NavItem[]; unread: number }) {
   const pathname = usePathname();
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 lg:flex flex-col border-r border-line bg-sand-50">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 print:!hidden lg:flex flex-col border-r border-line bg-sand-50">
       <Link href="/" className="flex items-baseline gap-2 px-6 pb-6 pt-7">
         <span className="font-display text-2xl font-semibold tracking-[0.14em] text-ink">BOHEMIA</span>
         <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-500">OS</span>
@@ -88,7 +88,7 @@ export function MobileNav({ main, bottom, unread }: { main: NavItem[]; bottom: N
           </div>
         </div>
       )}
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex print:hidden border-t border-line bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 backdrop-blur lg:hidden">
         {visible.map((i) => (
           <Link key={i.key} href={i.href} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ink-500">
             {tab(i, isActive(pathname, i.href))}

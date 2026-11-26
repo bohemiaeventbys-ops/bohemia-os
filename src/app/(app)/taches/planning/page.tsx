@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Repeat } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ import { isOverdue, sortTasks } from "@/lib/tasks";
 import { cn } from "@/lib/cn";
 import type { Task } from "@/lib/types";
 import { duplicateWeek } from "../actions";
+import { generateWeek } from "../../parametres/taches-auto/actions";
 
 export const metadata = { title: "Planning hebdomadaire" };
 
@@ -55,6 +56,12 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
           <Link href={qs({ semaine: addDays(monday, -7) })} className={buttonClass("secondary", "sm")}>← Semaine précédente</Link>
           <Link href={qs({ semaine: startOfWeek(today) })} className={buttonClass("secondary", "sm")}>Cette semaine</Link>
           <Link href={qs({ semaine: addDays(monday, 7) })} className={buttonClass("secondary", "sm")}>Semaine suivante →</Link>
+          {s.can("tasks.create") && (
+            <ActionForm action={generateWeek}>
+              <input type="hidden" name="week" value={monday} />
+              <SubmitButton size="sm" variant="success"><Repeat className="h-3.5 w-3.5" /> Tâches de la semaine</SubmitButton>
+            </ActionForm>
+          )}
         </>} />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">

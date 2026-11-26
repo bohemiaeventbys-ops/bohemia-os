@@ -9,7 +9,8 @@ import { Empty } from "@/components/ui/empty";
 import { buttonClass } from "@/components/ui/button";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
-import { Lock, Warehouse } from "lucide-react";
+import { FileText, Lock, Sparkles, Warehouse } from "lucide-react";
+import { generateEventTasks } from "../../parametres/taches-auto/actions";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { diffDays, formatDateTime, formatDayLong, todayISO } from "@/lib/dates";
@@ -51,6 +52,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           {days >= 0 && days <= 2 && <Badge tone="clay">{days === 0 ? "Aujourd'hui" : `J-${days}`}</Badge>}</span>}
         actions={<>
           {s.can("tasks.create") && <Link href={`/taches/nouvelle?evenement=${id}&date=${e.event_date}`} className={buttonClass("secondary", "sm")}><Plus className="h-3.5 w-3.5" /> Tâche</Link>}
+          <Link href={`/evenements/${id}/fiche`} className={buttonClass("primary", "sm")}><FileText className="h-3.5 w-3.5" /> Fiche technique</Link>
           {canEdit && <Link href={`/evenements/${id}/modifier`} className={buttonClass("secondary", "sm")}>Modifier</Link>}
         </>} />
 
@@ -73,6 +75,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           <Card>
             <CardHeader title="Tâches de l'événement" subtitle={`${done}/${tasks.length} terminées`}
               action={<div className="flex items-center gap-2"><div className="h-1.5 w-32 overflow-hidden rounded-full bg-sand-200"><div className="h-full bg-taupe-500" style={{ width: `${pct}%` }} /></div><span className="text-xs tabular-nums text-ink-400">{pct} %</span></div>} />
+            {(canEdit || s.can("tasks.create")) && (
+              <ActionForm action={generateEventTasks} className="border-b border-line bg-rose-50/50 px-5 py-3">
+                <input type="hidden" name="id" value={id} />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-ink-500">Les tâches de chacun sont créées automatiquement à la saisie de l&apos;événement (Paramètres &gt; Tâches automatiques).</p>
+                  <SubmitButton size="sm" variant="secondary"><Sparkles className="h-3.5 w-3.5" /> Créer les tâches manquantes</SubmitButton>
+                </div>
+              </ActionForm>
+            )}
             {tasks.length === 0 ? <Empty title="Aucune tâche liée.">Créez les tâches de production, logistique, décoration… depuis le bouton « Tâche ».</Empty> :
               <TaskTable tasks={tasks} people={people} events={new Map()} showEvent={false} />}
           </Card>

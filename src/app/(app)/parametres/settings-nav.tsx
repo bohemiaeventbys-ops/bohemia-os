@@ -11,6 +11,7 @@ export function SettingsNav({ isAdmin, canSettings, canAudit }: { isAdmin: boole
     canSettings && { href: "/parametres/departements", label: "Départements" },
     canSettings && { href: "/parametres/horaires", label: "Horaires" },
     canSettings && { href: "/parametres/kiosques", label: "Postes de pointage" },
+    canSettings && { href: "/parametres/taches-auto", label: "Tâches automatiques" },
     isAdmin && { href: "/parametres/roles", label: "Rôles & permissions" },
     canAudit && { href: "/parametres/journal", label: "Journal des actions" },
   ].filter(Boolean) as { href: string; label: string }[];

@@ -17,9 +17,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen">
       <Sidebar {...nav} unread={count ?? 0} />
       <MobileNav main={nav.main} bottom={nav.bottom} unread={count ?? 0} />
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 print:pl-0">
         <Topbar employee={session.employee} unread={count ?? 0} photoUrl={session.employee.photo_path ? urls.get(session.employee.photo_path) ?? null : null} />
-        <main className="mx-auto max-w-[1400px] px-4 pb-28 pt-6 sm:px-8 lg:pb-10 lg:pt-8">{children}</main>
+        <main className="mx-auto max-w-[1400px] px-4 pb-28 pt-6 sm:px-8 lg:pb-10 lg:pt-8 print:p-0">{children}</main>
       </div>
     </div>
   );

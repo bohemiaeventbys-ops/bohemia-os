@@ -10,7 +10,7 @@ import type { Employee } from "@/lib/types";
 export function Topbar({ employee, unread, photoUrl }: { employee: Employee; unread: number; photoUrl: string | null }) {
   const today = formatDayLong(todayISO());
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-ivory/85 px-4 sm:gap-6 sm:px-8 backdrop-blur">
+    <header className="sticky top-0 z-20 flex print:hidden h-16 items-center gap-3 border-b border-line bg-ivory/85 px-4 sm:gap-6 sm:px-8 backdrop-blur">
       <Link href="/" className="font-display text-xl font-semibold tracking-[0.12em] lg:hidden">BOHEMIA</Link>
       <form action="/recherche" className="relative hidden w-full max-w-md md:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" strokeWidth={1.5} />
