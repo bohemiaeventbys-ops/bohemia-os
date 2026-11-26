@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signedUrls } from "@/lib/storage";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatMAD, fullName } from "@/lib/format";
-import { PURCHASE_BUCKET, PURCHASE_STATUS, type Expense, type Purchase, type PurchaseLine, type Supplier } from "@/lib/suppliers";
+import { PURCHASE_BUCKET, PURCHASE_STATUS, qtyUnit, type Expense, type Purchase, type PurchaseLine, type Supplier } from "@/lib/suppliers";
 import type { StockItem } from "@/lib/stock";
 import type { Employee, EventRow } from "@/lib/types";
 import { ContactButtons } from "../../fournisseurs/contact-buttons";
@@ -123,7 +123,7 @@ export default async function PurchasePage({ params }: { params: Promise<{ id: s
                   {lines.map((l) => (
                     <tr key={l.id}>
                       <td className="px-5 py-2.5 font-medium">{l.label}{l.stock_item_id && <span className="block text-xs font-normal text-teal-700">→ entre au stock : {items.get(l.stock_item_id)}</span>}</td>
-                      <td className="whitespace-nowrap px-5 py-2.5 text-right font-bold tabular-nums">{Number(l.qty)} {l.unit}</td>
+                      <td className="whitespace-nowrap px-5 py-2.5 text-right font-bold tabular-nums">{qtyUnit(l.qty, l.unit)}</td>
                     </tr>
                   ))}
                 </tbody>

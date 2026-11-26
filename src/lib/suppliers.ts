@@ -58,3 +58,10 @@ export function telLink(n: string | null | undefined) {
 
 export const PURCHASE_BUCKET = "purchase-files";
 export const PURCHASE_UNITS = ["pièce", "m", "m²", "kg", "litre", "rouleau", "plaque", "boîte", "lot"];
+
+/** « 24 pièces », « 3 rouleaux », « 6 m » */
+export function qtyUnit(qty: number, unit: string) {
+  const n = Number(qty);
+  if (n <= 1 || /^(m|m²|kg)$/.test(unit) || unit.endsWith("s") || unit.endsWith("x")) return `${n} ${unit}`;
+  return `${n} ${unit.endsWith("eau") ? unit + "x" : unit + "s"}`;
+}
