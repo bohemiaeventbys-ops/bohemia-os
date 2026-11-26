@@ -50,8 +50,9 @@ npm run dev                  # http://localhost:3000
 ```
 Ouvrez <http://localhost:3000/installation> pour créer le compte Direction (cette page se désactive ensuite).
 
-### 4. Mettre en ligne (Vercel conseillé)
-Importez le dépôt GitHub dans Vercel et ajoutez les 3 variables d'environnement. Aucune autre configuration n'est nécessaire.
+### 4. Mettre en ligne (Netlify conseillé)
+Guide pas à pas, sans ligne de commande : [docs/MISE-EN-LIGNE.md](docs/MISE-EN-LIGNE.md).
+Installation de la base en une seule fois : `supabase/installation/bohemia-os-installation.sql`.
 
 ## Mettre en place le kiosque de pointage
 1. Sur l'ordinateur de pointage, connectez-vous avec un compte Direction.
