@@ -1,7 +1,10 @@
-# Netlify détecte Next.js automatiquement (pages serveur, actions, middleware).
+# Site Next.js (pages serveur, actions, middleware) : le module Netlify pour Next.js est obligatoire.
 [build]
   command = "npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
