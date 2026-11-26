@@ -20,6 +20,7 @@ import { sortTasks } from "@/lib/tasks";
 import type { Employee, EventFinance, EventRow, Task } from "@/lib/types";
 import { TaskTable } from "../../taches/task-row";
 import { addTeamMember, removeTeamMember, saveFinances } from "../actions";
+import { ServicesCard } from "./services-card";
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -96,6 +97,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             </span>
             <span className={buttonClass("secondary", "sm")}>Ouvrir</span>
           </Link>
+
+          <ServicesCard eventId={id} eventDate={e.event_date} s={s} />
         </div>
 
         <div className="space-y-6">

@@ -29,6 +29,7 @@ function itemPayload(fd: FormData) {
     dimensions: str(fd, "dimensions"),
     color: str(fd, "color"),
     notes: str(fd, "notes"),
+    min_qty: Math.max(0, int(fd, "min_qty") || 0),
   };
 }
 
@@ -187,4 +188,29 @@ export async function returnLine(_: ActionResult, fd: FormData): Promise<ActionR
   if (error) return fail(error);
   refresh(undefined, eventId ?? undefined);
   return { ok: vals[1] + vals[2] + vals[3] > 0 ? "Retour enregistré. Une tâche a été créée pour le dépôt." : "Retour enregistré : tout est en bon état." };
+}
+
+/** Prêt d'outillage (visseuse, perceuse…) à un employé */
+export async function lendTool(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const id = str(fd, "id");
+  const employee = str(fd, "employee_id");
+  const qty = int(fd, "qty") || 1;
+  if (!id || !employee) return { error: "Choisissez la personne." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("tool_lend", { p_item: id, p_employee: employee, p_qty: qty, p_due: str(fd, "due_back"), p_event: str(fd, "event_id"), p_note: str(fd, "note") });
+  if (error) return fail(error);
+  refresh(id);
+  return { ok: "C'est noté : on sait qui l'a." };
+}
+
+export async function returnTool(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const loan = str(fd, "loan_id");
+  const id = str(fd, "id");
+  if (!loan) return { error: "Prêt introuvable." };
+  const ok = str(fd, "state") !== "abime";
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("tool_return", { p_loan: loan, p_ok: ok, p_note: str(fd, "note") });
+  if (error) return fail(error);
+  refresh(id ?? undefined);
+  return { ok: ok ? "Rendu, merci !" : "Rendu : mis de côté pour réparation." };
 }

@@ -19,6 +19,8 @@ import { fullName } from "@/lib/format";
 import { LINE_STATUS, MOVE_KIND, STOCK_BUCKET, totalQty, type EventItem, type StockCategory, type StockItem, type StockMovement } from "@/lib/stock";
 import type { EventRow } from "@/lib/types";
 import { adjustStock, archiveItem, discardItem, flagItem, repairedItem } from "../actions";
+import { LoansCard } from "./loans-card";
+import { isLow } from "@/lib/stock";
 
 export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -81,6 +83,14 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="space-y-6 lg:col-span-3">
+          {isLow(item) && (
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-clay-200 bg-clay-50 px-5 py-4">
+              <AlertTriangle className="h-6 w-6 shrink-0 text-clay-600" />
+              <p className="min-w-0 flex-1 text-sm"><b>Il en manque.</b> Il en reste {item.qty_good} en bon état, le minimum est {item.min_qty}.</p>
+              <Link href={`/achats/nouveau?article=${item.id}&qte=${item.min_qty - item.qty_good}`} className={buttonClass("primary")}>Demander un achat</Link>
+            </div>
+          )}
+          {(cat?.name.startsWith("Outillage") || item.themes.includes("Outillage")) && <LoansCard item={item} canMove={canMove} />}
           {canMove && (
             <Card>
               <CardHeader title="Que voulez-vous faire ?" icon={<Hammer />} tone="ochre" />

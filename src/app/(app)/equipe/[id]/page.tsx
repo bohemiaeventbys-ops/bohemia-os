@@ -17,6 +17,7 @@ import { fullName } from "@/lib/format";
 import { OPEN_STATUSES, PRIORITY, ROLE, TASK_STATUS } from "@/lib/labels";
 import type { AttendanceDay, Employee, Task } from "@/lib/types";
 import { EmployeeFields } from "../employee-form";
+import { PrivateCard, type EmployeePrivate } from "../private-card";
 import { createAccount, resetPassword, revokeAccount, saveAccess, setPin, updateEmployee, uploadPhoto } from "../actions";
 
 export default async function EmployeePage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,6 +39,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
     supabase.from("department_managers").select("department_id").eq("employee_id", id),
   ]);
   const urls = await signedUrls(supabase, "avatars", [e.photo_path]);
+  const { data: priv } = s.isAdmin ? await supabase.from("employee_private").select("*").eq("employee_id", id).maybeSingle<EmployeePrivate>() : { data: null };
   const canEdit = s.can("employees.manage");
   const dept = departments.find((d) => d.id === e.department_id);
   const monthDays = (days ?? []) as AttendanceDay[];
@@ -70,7 +72,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
                 </ActionForm>
               ) : (
                 <dl className="grid gap-4 text-sm md:grid-cols-2">
-                  {[["Fonction", e.job_title], ["Département", dept?.name], ["Téléphone", e.phone], ["Email", e.email], ["Date d'entrée", formatDate(e.hire_date)],
+                  {[["Fonction", e.job_title], ["Département", dept?.name], ["Téléphone", e.phone], ["Email", e.email], ["Date d'embauche", formatDate(e.hire_date)],
                     ["Horaires", schedules.find((x) => x.id === e.schedule_id)?.name ?? "Par défaut"]].map(([k, v]) => (
                     <div key={k}><dt className="label">{k}</dt><dd>{v || "—"}</dd></div>
                   ))}
@@ -78,6 +80,8 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
               )}
             </CardBody>
           </Card>
+
+          {s.isAdmin && <PrivateCard id={e.id} p={priv} />}
 
           <Card>
             <CardHeader title="Tâches en cours" subtitle={`${tasks?.length ?? 0} tâche(s) ouverte(s)`} action={<Link href={`/taches?responsable=${e.id}`} className="link text-xs">Toutes ses tâches</Link>} />

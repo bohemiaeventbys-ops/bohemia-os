@@ -7,7 +7,7 @@ export const STOCK_BUCKET = "stock-photos";
 export interface StockCategory { id: string; name: string; icon: string; color: Tone; sort_order: number }
 export interface StockItem {
   id: string; name: string; category_id: string | null; themes: string[]; unit: string;
-  qty_good: number; qty_repair: number; qty_broken: number; location: string | null; dimensions: string | null;
+  qty_good: number; qty_repair: number; qty_broken: number; min_qty: number; location: string | null; dimensions: string | null;
   color: string | null; photo_path: string | null; notes: string | null; is_active: boolean; created_at: string; updated_at: string;
 }
 export interface EventItem {
@@ -45,4 +45,13 @@ export async function uploadStockPhoto(supabase: SupabaseClient, prefix: string,
   const { error } = await supabase.storage.from(STOCK_BUCKET).upload(path, f, { contentType: f.type });
   if (error) return { path: null, error: `Envoi de la photo impossible : ${error.message}` };
   return { path };
+}
+
+export interface ToolLoan {
+  id: string; item_id: string; employee_id: string; qty: number; event_id: string | null; taken_at: string; due_back: string | null;
+  returned_at: string | null; returned_ok: boolean | null; note: string | null;
+}
+/** Sous le seuil d'alerte (« il faut racheter ») */
+export function isLow(i: Pick<StockItem, "qty_good" | "min_qty">) {
+  return i.min_qty > 0 && i.qty_good < i.min_qty;
 }

@@ -9,6 +9,7 @@ import { fullName } from "@/lib/format";
 import { EVENT_STATUS, EVENT_TYPE, TASK_STATUS } from "@/lib/labels";
 import { LINE_STATUS, type EventItem, type StockCategory, type StockItem } from "@/lib/stock";
 import type { Department, Employee, EventRow, Task } from "@/lib/types";
+import { SERVICE_STATUS, type EventService, type Supplier } from "@/lib/suppliers";
 
 export const metadata = { title: "Fiche technique" };
 
@@ -24,7 +25,7 @@ export default async function FicheTechnique({ params }: { params: Promise<{ id:
   const supabase = await createClient();
   const { data: e } = await supabase.from("events").select("*").eq("id", id).maybeSingle<EventRow>();
   if (!e) notFound();
-  const [{ data: staff }, { data: deps }, { data: team }, { data: lineData }, { data: taskData }, { data: tplData }, { data: catData }] = await Promise.all([
+  const [{ data: staff }, { data: deps }, { data: team }, { data: lineData }, { data: taskData }, { data: tplData }, { data: catData }, { data: svcData }] = await Promise.all([
     supabase.from("employees").select("*"),
     supabase.from("departments").select("*"),
     supabase.from("event_team").select("*").eq("event_id", id),
@@ -32,7 +33,11 @@ export default async function FicheTechnique({ params }: { params: Promise<{ id:
     supabase.from("tasks").select("*").eq("event_id", id).order("due_date"),
     supabase.from("task_templates").select("id, step"),
     supabase.from("stock_categories").select("*").order("sort_order"),
+    supabase.from("event_services").select("*").eq("event_id", id).neq("status", "annule").order("service_date"),
   ]);
+  const services = (svcData ?? []) as EventService[];
+  const { data: supData } = services.length ? await supabase.from("suppliers").select("*").in("id", services.map((v) => v.supplier_id)) : { data: [] };
+  const sup = new Map(((supData ?? []) as Supplier[]).map((x) => [x.id, x]));
   const people = new Map(((staff ?? []) as Employee[]).map((p) => [p.id, p]));
   const depMap = new Map(((deps ?? []) as Department[]).map((d) => [d.id, d]));
   const lines = (lineData ?? []) as EventItem[];
@@ -134,6 +139,28 @@ export default async function FicheTechnique({ params }: { params: Promise<{ id:
             </div>
           )}
         </section>
+
+        {services.length > 0 && (
+          <section>
+            <H>Prestataires</H>
+            <table className="w-full text-sm">
+              <tbody>
+                {services.map((v) => {
+                  const x = sup.get(v.supplier_id);
+                  return (
+                    <tr key={v.id} className="border-b border-line/70">
+                      <td className="py-1.5 font-medium">{x?.name}</td>
+                      <td className="py-1.5 pl-3">{v.description}</td>
+                      <td className="whitespace-nowrap py-1.5 pl-3 tabular-nums">{formatDate(v.service_date ?? e.event_date)}{v.service_time ? ` ${hhmm(v.service_time)}` : ""}</td>
+                      <td className="whitespace-nowrap py-1.5 pl-3 tabular-nums text-ink-500">{x?.phone ?? ""}</td>
+                      <td className="py-1.5 pl-3 text-right text-xs text-ink-500">{SERVICE_STATUS[v.status].label}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </section>
+        )}
 
         <section>
           <H>Qui fait quoi</H>

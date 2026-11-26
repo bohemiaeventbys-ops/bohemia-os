@@ -15,8 +15,6 @@ export const UPCOMING: Record<string, { label: string; phase: number; icon: stri
   clients: { label: "Clients", phase: 3, icon: "contact", summary: "Fichier clients et prospects relié aux événements et aux devis.", features: ["Prospects et clients", "Demandes, appels, rendez-vous", "Devis et commandes", "Historique par client"] },
   studio: { label: "Validation Studio", phase: 4, icon: "palette", summary: "Dépôt des designs par version et circuit de validation par la direction.", features: ["Designs, panneaux, invitations, menus, stickers", "Versions : une version validée n'est jamais modifiée", "Valider, refuser, commenter, demander une modification", "Passage automatique en production après validation"] },
   production: { label: "Production", phase: 4, icon: "factory", summary: "Suivi des productions : graphisme, impression, découpe, vinyle, forex, MDF.", features: ["Fiches de production par événement", "Matériaux et quantités", "Deadlines et responsables", "Contrôle qualité"] },
-  achats: { label: "Achats", phase: 4, icon: "shopping", summary: "Demande d'achat → validation → commande → réception → entrée en stock.", features: ["Demandes reliées aux événements", "Validation par la direction", "Réception et entrée en stock", "Documents joints"] },
-  fournisseurs: { label: "Fournisseurs", phase: 7, icon: "store", summary: "Base fournisseurs, tarifs, devis, factures et comparaison de prix.", features: ["Contacts, WhatsApp, conditions", "Produits et tarifs", "Historique des achats", "Comparaison des prix"] },
   transport: { label: "Transport & Véhicules", phase: 5, icon: "truck", summary: "Les deux véhicules, trajets, kilométrage, gasoil et entretien.", features: ["Fiches véhicules, assurance, entretien", "Trajets par événement", "Gasoil avec ticket", "Rapports mensuels"] },
   commissions: { label: "Commissions", phase: 6, icon: "award", summary: "Commissions de performance configurables, contrôlées par la direction.", features: ["Règles : type, montant, critères, période", "Statuts : en attente → payée", "Tableau mensuel", "Aucune pénalité automatique"] },
   rapports: { label: "Rapports", phase: 6, icon: "chart", summary: "Rapports employés, événements, stock, véhicules et production, exports Excel/PDF.", features: ["Présences, retards, taux de réalisation", "Budgets et dépenses par événement", "Stock et pertes", "Exports Excel et PDF"] },
@@ -33,6 +31,8 @@ export function buildNav(s: Session) {
   if (s.can("employees.view") || s.can("employees.manage") || managerish) main.push({ key: "equipe", label: "Équipe", href: "/equipe", icon: "users", tone: "plum" });
   main.push({ key: "pointage", label: s.can("attendance.view_all") || managerish ? "Pointage" : "Mon pointage", href: "/pointage", icon: "clock", tone: "teal" });
   main.push({ key: "stock", label: "Dépôt & Stock", href: "/stock", icon: "warehouse", tone: "ochre" });
+  main.push({ key: "achats", label: "Achats", href: "/achats", icon: "shopping", tone: "teal" });
+  main.push({ key: "fournisseurs", label: "Fournisseurs", href: "/fournisseurs", icon: "store", tone: "plum" });
   main.push({ key: "conges", label: s.can("leaves.manage") || s.isAdmin ? "Congés & absences" : "Mes congés", href: "/conges", icon: "plane", tone: "clay" });
 
   const upcoming: NavItem[] = s.isAdmin

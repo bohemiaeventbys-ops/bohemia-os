@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Hammer, PackageCheck, Plus, Search, Truck, Undo2, Warehouse } from "lucide-react";
+import { Hammer, PackageCheck, Plus, Search, ShoppingCart, Truck, Undo2, Warehouse } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs } from "@/components/ui/tabs";
@@ -14,7 +14,7 @@ import { signedUrls } from "@/lib/storage";
 import { cn } from "@/lib/cn";
 import { addDays, diffDays, formatDayShort, todayISO } from "@/lib/dates";
 import { EVENT_TYPE } from "@/lib/labels";
-import { STOCK_BUCKET, type EventItem, type StockCategory, type StockItem } from "@/lib/stock";
+import { STOCK_BUCKET, isLow, type EventItem, type StockCategory, type StockItem } from "@/lib/stock";
 import type { EventRow } from "@/lib/types";
 import { discardItem, repairedItem } from "./actions";
 
@@ -26,7 +26,7 @@ export default async function StockPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const s = await requireSession();
   const supabase = await createClient();
-  const vue = sp.vue === "sorties" || sp.vue === "reparer" ? sp.vue : "inventaire";
+  const vue = sp.vue === "sorties" || sp.vue === "reparer" || sp.vue === "racheter" ? sp.vue : "inventaire";
   const canManage = s.can("stock.manage");
   const canMove = canManage || s.can("stock.move") || s.can("events.manage");
 
@@ -38,11 +38,13 @@ export default async function StockPage({ searchParams }: { searchParams: Promis
   const catMap = new Map(cats.map((c) => [c.id, c]));
   const all = (itemData ?? []) as StockItem[];
   const repairCount = all.filter((i) => i.qty_repair > 0 || i.qty_broken > 0).length;
+  const low = all.filter(isLow);
 
   const tabs = [
     { key: "inventaire", label: "Inventaire", href: "/stock", count: all.length },
     { key: "sorties", label: "Sorties & retours", href: "/stock?vue=sorties" },
     { key: "reparer", label: "À réparer", href: "/stock?vue=reparer", count: repairCount },
+    { key: "racheter", label: "Il en manque", href: "/stock?vue=racheter", count: low.length },
   ];
 
   return (
@@ -52,6 +54,7 @@ export default async function StockPage({ searchParams }: { searchParams: Promis
       <Tabs active={vue} items={tabs} />
       {vue === "inventaire" && <Inventory sp={sp} all={all} cats={cats} catMap={catMap} />}
       {vue === "sorties" && <Outgoing canMove={canMove} />}
+      {vue === "racheter" && <LowList items={low} catMap={catMap} />}
       {vue === "reparer" && <Repairs items={all.filter((i) => i.qty_repair > 0 || i.qty_broken > 0)} catMap={catMap} canMove={canMove} canManage={canManage} />}
     </>
   );
@@ -116,7 +119,7 @@ async function Inventory({ sp, all, cats, catMap }: { sp: SP; all: StockItem[]; 
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
                     : <span className="flex h-full w-full items-center justify-center"><NavIcon name={c?.icon ?? "box"} className="h-10 w-10 opacity-70" /></span>}
-                  <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-sm font-bold tabular-nums text-ink shadow-card">{i.qty_good} <span className="text-xs font-medium text-ink-400">{i.unit}{i.qty_good > 1 && i.unit === "pièce" ? "s" : ""}</span></span>
+                  <span className={cn("absolute left-2 top-2 rounded-full px-2.5 py-1 text-sm font-bold tabular-nums shadow-card", isLow(i) ? "bg-clay-500 text-white" : "bg-white/90 text-ink")}>{i.qty_good} <span className="text-xs font-medium opacity-70">{i.unit}{i.qty_good > 1 && i.unit === "pièce" ? "s" : ""}</span></span>
                 </div>
                 <div className="space-y-1.5 p-3">
                   <p className="line-clamp-2 text-[15px] font-semibold leading-snug">{i.name}</p>
@@ -245,6 +248,26 @@ async function Repairs({ items, catMap, canMove, canManage }: { items: StockItem
             </li>
           );
         })}
+      </ul>
+    </Card>
+  );
+}
+
+function LowList({ items, catMap }: { items: StockItem[]; catMap: Map<string, StockCategory> }) {
+  if (!items.length) return <Card><Empty title="Rien ne manque." icon={<PackageCheck className="h-8 w-8" />}>Donnez un minimum aux articles (Modifier &gt; « Prévenir s&apos;il en reste moins de ») pour être prévenu.</Empty></Card>;
+  return (
+    <Card>
+      <CardHeader icon={<ShoppingCart />} tone="clay" title="Il en manque" subtitle="Sous le minimum : le dépôt, les achats et la direction sont prévenus" />
+      <ul className="divide-y divide-line">
+        {items.map((i) => (
+          <li key={i.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
+            <Link href={`/stock/${i.id}`} className="min-w-0 flex-1">
+              <span className="block font-semibold">{i.name}</span>
+              <span className="block text-sm text-ink-500">{catMap.get(i.category_id ?? "")?.name ?? "Sans catégorie"} · reste <b className="text-clay-700">{i.qty_good}</b> / minimum {i.min_qty}</span>
+            </Link>
+            <ButtonLink href={`/achats/nouveau?article=${i.id}&qte=${i.min_qty - i.qty_good}`} size="sm">Demander un achat</ButtonLink>
+          </li>
+        ))}
       </ul>
     </Card>
   );

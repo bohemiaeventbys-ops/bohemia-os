@@ -163,3 +163,24 @@ export async function saveAccess(_: ActionResult, fd: FormData): Promise<ActionR
   revalidatePath(`/equipe/${id}`);
   return { ok: "Rôle et permissions enregistrés." };
 }
+
+/** Données personnelles (CIN, CNSS…) : Direction uniquement, table séparée protégée. */
+export async function savePrivate(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const s = await requireSession();
+  if (!s.isAdmin) return { error: "Réservé à la direction." };
+  const id = str(fd, "id");
+  if (!id) return { error: "Employé introuvable." };
+  const cin = str(fd, "cin")?.toUpperCase().replace(/\s+/g, "") ?? null;
+  if (cin && !/^[A-Z]{1,2}\d{3,7}$/.test(cin)) return { error: "CIN invalide (ex. BE123456)." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("employee_private").upsert({
+    employee_id: id, cin,
+    birth_date: str(fd, "birth_date"), address: str(fd, "address"),
+    emergency_name: str(fd, "emergency_name"), emergency_phone: str(fd, "emergency_phone"),
+    contract_type: str(fd, "contract_type"), contract_end: str(fd, "contract_end"),
+    cnss_number: str(fd, "cnss_number"), bank_rib: str(fd, "bank_rib"),
+  });
+  if (error) return fail(error);
+  revalidatePath(`/equipe/${id}`);
+  return { ok: "Données personnelles enregistrées." };
+}

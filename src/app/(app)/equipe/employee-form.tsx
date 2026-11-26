@@ -14,9 +14,9 @@ export function EmployeeFields({ e, departments, schedules, showRole, showPin }:
           {departments.filter((d) => d.is_active || d.id === e?.department_id).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </Select>
       </Field>
-      <Field label="Téléphone"><Input name="phone" defaultValue={e?.phone ?? ""} placeholder="06 00 00 00 00" /></Field>
+      <Field label="Téléphone"><Input name="phone" type="tel" defaultValue={e?.phone ?? ""} placeholder="06 00 00 00 00" /></Field>
       <Field label="Email"><Input name="email" type="email" defaultValue={e?.email ?? ""} /></Field>
-      <Field label="Date d'entrée"><Input name="hire_date" type="date" defaultValue={e?.hire_date ?? ""} /></Field>
+      <Field label="Date d'embauche"><Input name="hire_date" type="date" defaultValue={e?.hire_date ?? ""} /></Field>
       <Field label="Horaires de travail">
         <Select name="schedule_id" defaultValue={e?.schedule_id ?? ""}>
           <option value="">Horaire par défaut</option>

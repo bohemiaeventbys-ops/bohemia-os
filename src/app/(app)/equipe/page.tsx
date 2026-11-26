@@ -70,7 +70,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
                   <td className="text-ink-500">{e.job_title ?? "—"}</td>
                   <td>{e.department_id ? dept.get(e.department_id)?.name : "—"}</td>
                   <td className="text-ink-500">{e.schedule_id ? sched.get(e.schedule_id) : "Par défaut"}</td>
-                  <td className="tabular-nums text-ink-500">{e.phone ?? "—"}</td>
+                  <td className="tabular-nums text-ink-500">{e.phone ? <a href={`tel:${e.phone.replace(/[^\d+]/g, "")}`} className="link">{e.phone}</a> : "—"}</td>
                   <td>{e.user_id ? <span className="text-xs text-ink-500">{ROLE[e.role]}</span> : <span className="text-xs text-ink-300">Pas de compte</span>}</td>
                   <td><Badge tone={e.status === "actif" ? "sage" : e.status === "suspendu" ? "ochre" : "neutral"}>{e.status === "actif" ? "Actif" : e.status === "suspendu" ? "Suspendu" : "Inactif"}</Badge></td>
                 </tr>
