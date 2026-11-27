@@ -24,6 +24,7 @@ function payload(fd: FormData) {
     client_phone: str(fd, "client_phone"),
     event_date: date,
     address: str(fd, "address"),
+    load_at: ts(fd, date, "load"),
     delivery_at: ts(fd, date, "delivery"),
     setup_at: ts(fd, date, "setup"),
     start_at: ts(fd, date, "start"),
@@ -31,6 +32,9 @@ function payload(fd: FormData) {
     teardown_at: ts(fd, date, "teardown"),
     manager_id: str(fd, "manager_id"),
     notes: str(fd, "notes"),
+    access_notes: str(fd, "access_notes"),
+    site_contact_name: str(fd, "site_contact_name"),
+    site_contact_phone: str(fd, "site_contact_phone"),
   };
 }
 

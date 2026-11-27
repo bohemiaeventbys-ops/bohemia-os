@@ -13,7 +13,7 @@ export interface Department {
 export interface Employee {
   id: string; user_id: string | null; first_name: string; last_name: string; email: string | null; phone: string | null;
   job_title: string | null; department_id: string | null; role: AppRole; status: "actif" | "inactif" | "suspendu";
-  hire_date: string | null; schedule_id: string | null; photo_path: string | null; notes: string | null; created_at: string;
+  hire_date: string | null; schedule_id: string | null; photo_path: string | null; notes: string | null; created_at: string; lang?: "fr" | "ar";
 }
 export interface WorkSchedule {
   id: string; name: string; days: Record<string, { start: string; end: string }>; grace_minutes: number; is_default: boolean;
@@ -30,6 +30,8 @@ export interface EventRow {
   event_date: string; address: string | null; delivery_at: string | null; setup_at: string | null; start_at: string | null;
   end_at: string | null; teardown_at: string | null; manager_id: string | null; notes: string | null;
   created_by: string | null; created_at: string;
+  load_at?: string | null; access_notes?: string | null; site_contact_name?: string | null; site_contact_phone?: string | null;
+  delivered_at?: string | null; invoice_handed_at?: string | null;
 }
 export interface AttendanceDay {
   employee_id: string; work_date: string; scheduled_start: string | null; scheduled_end: string | null; first_in: string | null;

@@ -13,7 +13,7 @@ function d(v: string | null | undefined, fallback?: string) {
 
 export function EventFields({ e, employees, clients = [], clientId }: { e?: EventRow; employees: Employee[]; clients?: { id: string; name: string; phone: string | null }[]; clientId?: string }) {
   const moments: [string, string, string | null | undefined][] = [
-    ["delivery", "Livraison", e?.delivery_at], ["setup", "Installation", e?.setup_at], ["start", "Début", e?.start_at],
+    ["load", "Chargement au dépôt", e?.load_at], ["delivery", "Livraison", e?.delivery_at], ["setup", "Installation", e?.setup_at], ["start", "Début", e?.start_at],
     ["end", "Fin", e?.end_at], ["teardown", "Démontage", e?.teardown_at],
   ];
   return (
@@ -36,7 +36,7 @@ export function EventFields({ e, employees, clients = [], clientId }: { e?: Even
       </section>
       <section>
         <p className="label">Horaires (heure de Casablanca)</p>
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
           {moments.map(([k, label, v]) => (
             <div key={k} className="rounded-xl border border-line bg-sand-50 p-3">
               <p className="mb-2 text-xs font-medium text-ink-500">{label}</p>
@@ -50,6 +50,14 @@ export function EventFields({ e, employees, clients = [], clientId }: { e?: Even
           ))}
         </div>
         <p className="mt-2 text-xs text-ink-400">Laissez la date vide pour utiliser la date de l&apos;événement (utile pour une livraison la veille, ou un démontage le lendemain, indiquez la date).</p>
+      </section>
+      <section className="rounded-2xl border border-teal-200 bg-teal-50/40 p-4">
+        <p className="label">Pour l&apos;équipe terrain (chauffeur, installation)</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Contact sur place"><Input name="site_contact_name" defaultValue={e?.site_contact_name ?? ""} placeholder="Ex. M. Bennani, wedding planner" /></Field>
+          <Field label="Téléphone du contact sur place"><Input name="site_contact_phone" type="tel" defaultValue={e?.site_contact_phone ?? ""} /></Field>
+          <Field label="Consignes d'accès" className="md:col-span-2"><Textarea name="access_notes" defaultValue={e?.access_notes ?? ""} rows={2} placeholder="Ex. Entrée camion par la rue arrière, 2e étage sans ascenseur, prise électrique côté jardin" /></Field>
+        </div>
       </section>
       <Field label="Notes"><Textarea name="notes" defaultValue={e?.notes ?? ""} rows={4} /></Field>
     </div>

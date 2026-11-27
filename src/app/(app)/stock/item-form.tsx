@@ -55,6 +55,8 @@ export function ItemForm({ action, item, cats, knownThemes, photoUrl, defaultCat
       <details className="rounded-xl bg-sand-50 p-4" open={!!item}>
         <summary className="cursor-pointer text-sm font-semibold text-ink-600">Plus de détails (emplacement, dimensions, couleur…)</summary>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="Code article" hint="Court et unique, ex. CH-12, ARC-03"><Input name="code" defaultValue={item?.code ?? ""} className="font-mono uppercase" autoCapitalize="characters" /></Field>
+          <Field label="Nom en arabe (facultatif)" hint="Pour l'équipe qui lit l'arabe"><Input name="name_ar" dir="rtl" lang="ar" defaultValue={item?.name_ar ?? ""} placeholder="مثال : كرسي ذهبي" /></Field>
           <Field label="Où est-il rangé ?"><Input name="location" defaultValue={item?.location ?? ""} placeholder="Ex. Dépôt, allée B, étagère 3" /></Field>
           <Field label="Prévenir s'il en reste moins de" hint="0 = pas d'alerte. Ex. 2 visseuses, 50 ballons"><Input name="min_qty" type="number" min={0} inputMode="numeric" defaultValue={item?.min_qty ?? 0} className="text-center" /></Field>
           <Field label="Unité"><Input name="unit" defaultValue={item?.unit ?? "pièce"} placeholder="pièce, mètre, lot…" /></Field>

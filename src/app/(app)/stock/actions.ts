@@ -26,6 +26,8 @@ function itemPayload(fd: FormData) {
     themes: themes(fd),
     unit: str(fd, "unit") ?? "pièce",
     location: str(fd, "location"),
+    code: str(fd, "code")?.toUpperCase() ?? null,
+    name_ar: str(fd, "name_ar"),
     dimensions: str(fd, "dimensions"),
     color: str(fd, "color"),
     notes: str(fd, "notes"),
