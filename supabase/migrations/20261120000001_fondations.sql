@@ -107,7 +107,7 @@ create table public.employee_pins (
   updated_at timestamptz not null default now()
 );
 
--- Responsables de département (plusieurs possibles : Khaoula & Sihem, Ayoub & Mohamed)
+-- Responsables de département (plusieurs possibles : Khaoula & Siham, Ayoub & Mohamed)
 create table public.department_managers (
   department_id uuid not null references public.departments (id) on delete cascade,
   employee_id uuid not null references public.employees (id) on delete cascade,

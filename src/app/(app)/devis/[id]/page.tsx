@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Check, Copy, FileSignature, Printer, Receipt, Send, X } from "lucide-react";
+import { Check, Copy, FileSignature, Paperclip, Printer, Receipt, Send, X } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +11,10 @@ import { requirePerm } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/dates";
 import { formatMAD } from "@/lib/format";
-import { CONTRACT_STATUS, INVOICE_KIND, INVOICE_STATUS, QUOTE_STATUS, type Client, type Contract, type Invoice, type Quote, type QuoteLine } from "@/lib/clients";
+import { signedUrls } from "@/lib/storage";
+import { CLIENT_DOCS_BUCKET, CONTRACT_STATUS, INVOICE_KIND, INVOICE_STATUS, QUOTE_STATUS, type Client, type Contract, type Invoice, type Quote, type QuoteLine } from "@/lib/clients";
 import type { EventRow } from "@/lib/types";
-import { duplicateQuote, makeContract, makeInvoice, saveQuote, setQuoteStatus } from "../actions";
+import { attachQuoteFile, duplicateQuote, makeContract, makeInvoice, saveQuote, setQuoteStatus } from "../actions";
 import { QuoteLines } from "./quote-lines";
 
 export const metadata = { title: "Devis" };
@@ -31,6 +32,9 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
     supabase.from("invoices").select("*").eq("quote_id", id).order("created_at"),
     supabase.from("contracts").select("*").eq("quote_id", id).order("created_at"),
   ]);
+  const { data: stored } = await supabase.storage.from(CLIENT_DOCS_BUCKET).list(`quotes/${id}`, { sortBy: { column: "created_at", order: "desc" } });
+  const filePaths = (stored ?? []).filter((f) => f.name && !f.name.startsWith(".")).map((f) => `quotes/${id}/${f.name}`);
+  const fileUrls = await signedUrls(supabase, CLIENT_DOCS_BUCKET, filePaths);
   const lines = (ln ?? []) as QuoteLine[];
   const clients = (cl ?? []) as Pick<Client, "id" | "name" | "phone" | "whatsapp">[];
   const event = ev as EventRow | null;
@@ -93,6 +97,25 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
             ))}
           </ul>
         )}
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader title={<span className="flex items-center gap-2"><Paperclip className="h-4 w-4 text-ochre-700" /> Devis joint (PDF ou photo)</span>}
+          subtitle="Pour un devis déjà fait ailleurs : joignez le fichier ici." />
+        <CardBody className="space-y-3 text-sm">
+          {filePaths.length > 0 && (
+            <ul className="space-y-1">
+              {filePaths.map((p, n) => (
+                <li key={p}><a className="link" href={fileUrls.get(p)} target="_blank" rel="noreferrer">{n === 0 ? "Dernier fichier joint" : `Ancienne version ${filePaths.length - n}`}</a></li>
+              ))}
+            </ul>
+          )}
+          <ActionForm action={attachQuoteFile} className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="id" value={id} />
+            <Field label="Fichier" className="min-w-0 flex-1"><Input type="file" name="file" accept="application/pdf,image/*" required /></Field>
+            <SubmitButton variant="secondary">Joindre</SubmitButton>
+          </ActionForm>
+        </CardBody>
       </Card>
 
       <Card>

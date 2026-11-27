@@ -40,8 +40,12 @@ export function EventFields({ e, employees, clients = [], clientId }: { e?: Even
           {moments.map(([k, label, v]) => (
             <div key={k} className="rounded-xl border border-line bg-sand-50 p-3">
               <p className="mb-2 text-xs font-medium text-ink-500">{label}</p>
-              <Input type="date" name={`${k}_date`} defaultValue={d(v, e?.event_date)} className="mb-2 h-9 py-1 text-xs" />
-              <Input type="time" name={k} defaultValue={t(v)} className="h-9 py-1" />
+              <label className="block text-[11px] text-ink-500">Jour (vide = jour de l&apos;événement)
+                <Input type="date" name={`${k}_date`} defaultValue={d(v, e?.event_date)} className="mb-2 mt-0.5 h-10 py-1 text-sm" />
+              </label>
+              <label className="block text-[11px] text-ink-500">Heure
+                <Input type="time" name={k} defaultValue={t(v)} className="mt-0.5 h-10 py-1 text-sm" />
+              </label>
             </div>
           ))}
         </div>

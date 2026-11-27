@@ -22,7 +22,7 @@ export default async function NewQuote({ searchParams }: { searchParams: Promise
   const events = (ev ?? []) as Pick<EventRow, "id" | "name" | "event_date" | "client_id">[];
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader eyebrow={<Link href="/devis" className="hover:underline">Devis & factures</Link>} title="Nouveau devis" subtitle="Choisissez l'événement : le client et le titre sont repris automatiquement." />
+      <PageHeader eyebrow={<Link href="/devis" className="hover:underline">Devis & factures</Link>} title="Nouveau devis" subtitle="Choisissez l'événement : le client et le titre sont repris automatiquement. Vous pouvez aussi joindre un devis déjà fait." />
       <Card><CardBody className="py-6">
         <ActionForm action={createQuote} className="space-y-4">
           <Field label="Pour quel événement ?">
@@ -32,6 +32,13 @@ export default async function NewQuote({ searchParams }: { searchParams: Promise
             <Select name="client_id" defaultValue={sp.client ?? ""}><option value="">—</option>{(cl ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
           </Field>
           <Field label="Titre (facultatif)"><Input name="title" placeholder="Ex. Décoration mariage, Anniversaire 1 an" /></Field>
+          <div className="rounded-xl border border-dashed border-line bg-sand-50 p-4">
+            <p className="mb-3 text-sm font-medium">Devis déjà fait ailleurs ? (facultatif)</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Fichier du devis (PDF ou photo)"><Input type="file" name="file" accept="application/pdf,image/*" /></Field>
+              <Field label="Montant HT (DH)"><Input name="amount_ht" inputMode="decimal" placeholder="Ex. 12000" /></Field>
+            </div>
+          </div>
           <SubmitButton size="lg">Créer le devis</SubmitButton>
         </ActionForm>
       </CardBody></Card>

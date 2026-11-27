@@ -60,10 +60,10 @@ with d as (select id, code from public.departments),
      a as (select id from public.work_schedules where name like 'Atelier%'),
      ins as (
        insert into public.employees (first_name, job_title, department_id, role, schedule_id) values
-         ('Cédoua',   'Responsable Commercial & Clients', (select id from d where code = 'COM'), 'manager', (select id from s)),
-         ('Mustapha', 'Responsable Graphisme & Production', (select id from d where code = 'GRA'), 'manager', (select id from a)),
-         ('Khaoula',  'Responsable OHMYBOX & Papeterie · Design panneaux', (select id from d where code = 'OMB'), 'manager', (select id from s)),
-         ('Sihem',    'Responsable OHMYBOX & Papeterie', (select id from d where code = 'OMB'), 'manager', (select id from s)),
+         ('Douae',    'Commerciale & chargée installation', (select id from d where code = 'COM'), 'manager', (select id from s)),
+         ('Moustafa', 'Infographiste · machiniste', (select id from d where code = 'GRA'), 'manager', (select id from a)),
+         ('Khaoula',  'Infographiste · machiniste', (select id from d where code = 'OMB'), 'manager', (select id from s)),
+         ('Siham',    'Infographiste · machiniste', (select id from d where code = 'OMB'), 'manager', (select id from s)),
          ('Ayoub',    'Responsable Dépôt & Logistique', (select id from d where code = 'DEP'), 'manager', (select id from a)),
          ('Mohamed',  'Responsable Dépôt & Logistique', (select id from d where code = 'DEP'), 'manager', (select id from a))
        returning id, department_id

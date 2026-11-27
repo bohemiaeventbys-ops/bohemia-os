@@ -112,7 +112,7 @@ create table public.employee_pins (
   updated_at timestamptz not null default now()
 );
 
--- Responsables de département (plusieurs possibles : Khaoula & Sihem, Ayoub & Mohamed)
+-- Responsables de département (plusieurs possibles : Khaoula & Siham, Ayoub & Mohamed)
 create table public.department_managers (
   department_id uuid not null references public.departments (id) on delete cascade,
   employee_id uuid not null references public.employees (id) on delete cascade,
@@ -1262,10 +1262,10 @@ with d as (select id, code from public.departments),
      a as (select id from public.work_schedules where name like 'Atelier%'),
      ins as (
        insert into public.employees (first_name, job_title, department_id, role, schedule_id) values
-         ('Cédoua',   'Responsable Commercial & Clients', (select id from d where code = 'COM'), 'manager', (select id from s)),
-         ('Mustapha', 'Responsable Graphisme & Production', (select id from d where code = 'GRA'), 'manager', (select id from a)),
-         ('Khaoula',  'Responsable OHMYBOX & Papeterie · Design panneaux', (select id from d where code = 'OMB'), 'manager', (select id from s)),
-         ('Sihem',    'Responsable OHMYBOX & Papeterie', (select id from d where code = 'OMB'), 'manager', (select id from s)),
+         ('Douae',    'Commerciale & chargée installation', (select id from d where code = 'COM'), 'manager', (select id from s)),
+         ('Moustafa', 'Infographiste · machiniste', (select id from d where code = 'GRA'), 'manager', (select id from a)),
+         ('Khaoula',  'Infographiste · machiniste', (select id from d where code = 'OMB'), 'manager', (select id from s)),
+         ('Siham',    'Infographiste · machiniste', (select id from d where code = 'OMB'), 'manager', (select id from s)),
          ('Ayoub',    'Responsable Dépôt & Logistique', (select id from d where code = 'DEP'), 'manager', (select id from a)),
          ('Mohamed',  'Responsable Dépôt & Logistique', (select id from d where code = 'DEP'), 'manager', (select id from a))
        returning id, department_id
@@ -1321,7 +1321,7 @@ end $$;
 -- BOHEMIA OS — Migration 5
 -- 1) Finances des événements confidentielles : budget, devis, paiement
 --    visibles uniquement avec la permission finance.view
---    (Direction + commerciale Cédoua par défaut).
+--    (Direction + commerciale Douae par défaut).
 -- 2) Module Congés & absences : règles d'annulation, notifications aux
 --    responsables, historique.
 -- =====================================================================
@@ -1349,9 +1349,9 @@ create policy finances_all on public.event_finances for all to authenticated
 create trigger t_touch before update on public.event_finances for each row execute function public.touch_updated_at();
 create trigger t_audit after insert or update or delete on public.event_finances for each row execute function public.audit_trigger();
 
--- La commerciale (Cédoua) voit les montants
+-- La commerciale (Douae) voit les montants
 insert into public.employee_permissions (employee_id, permission, granted)
-select id, 'finance.view', true from public.employees where first_name = 'Cédoua'
+select id, 'finance.view', true from public.employees where first_name = 'Douae'
 on conflict do nothing;
 
 -- Congés : un employé peut créer ou annuler sa propre demande en attente, jamais la valider
@@ -2937,3 +2937,13 @@ create policy "documents clients lecture" on storage.objects for select to authe
   using (bucket_id = 'client-docs' and public.has_perm('finance.view'));
 create policy "documents clients depot" on storage.objects for insert to authenticated
   with check (bucket_id = 'client-docs' and public.has_perm('finance.view'));
+
+-- Équipe : prénoms et fonctions corrigés (27 nov)
+update public.employees set first_name = 'Douae', job_title = 'Commerciale & chargée installation' where first_name in ('Cédoua', 'Doha');
+update public.employees set first_name = 'Moustafa', job_title = 'Infographiste · machiniste' where first_name = 'Mustapha';
+update public.employees set first_name = 'Siham', job_title = 'Infographiste · machiniste' where first_name = 'Sihem';
+update public.employees set job_title = 'Infographiste · machiniste' where first_name = 'Khaoula';
+insert into public.employees (first_name, job_title, department_id, role, schedule_id)
+select v.fn, v.jt, (select id from public.departments where code = 'COM'), 'manager', (select id from public.work_schedules where is_default limit 1)
+from (values ('Ghita', 'Cheffe de projet'), ('Sara', 'Gérante')) as v(fn, jt)
+where not exists (select 1 from public.employees e where e.first_name = v.fn);

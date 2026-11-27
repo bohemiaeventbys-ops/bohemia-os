@@ -515,3 +515,13 @@ create policy "documents clients lecture" on storage.objects for select to authe
   using (bucket_id = 'client-docs' and public.has_perm('finance.view'));
 create policy "documents clients depot" on storage.objects for insert to authenticated
   with check (bucket_id = 'client-docs' and public.has_perm('finance.view'));
+
+-- Équipe : prénoms et fonctions corrigés (27 nov)
+update public.employees set first_name = 'Douae', job_title = 'Commerciale & chargée installation' where first_name in ('Cédoua', 'Doha');
+update public.employees set first_name = 'Moustafa', job_title = 'Infographiste · machiniste' where first_name = 'Mustapha';
+update public.employees set first_name = 'Siham', job_title = 'Infographiste · machiniste' where first_name = 'Sihem';
+update public.employees set job_title = 'Infographiste · machiniste' where first_name = 'Khaoula';
+insert into public.employees (first_name, job_title, department_id, role, schedule_id)
+select v.fn, v.jt, (select id from public.departments where code = 'COM'), 'manager', (select id from public.work_schedules where is_default limit 1)
+from (values ('Ghita', 'Cheffe de projet'), ('Sara', 'Gérante')) as v(fn, jt)
+where not exists (select 1 from public.employees e where e.first_name = v.fn);

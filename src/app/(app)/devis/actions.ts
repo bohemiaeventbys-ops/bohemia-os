@@ -41,8 +41,31 @@ export async function createQuote(_: ActionResult, fd: FormData): Promise<Action
     valid_until: addDays(todayISO(), c?.quote_validity_days ?? 15),
   }).select("id").single();
   if (error) return fail(error);
+  // Devis déjà fait ailleurs : on joint le fichier et on reprend le montant HT en une ligne.
+  const file = fd.get("file");
+  if (file instanceof File && file.size > 0) {
+    const up = await upload(supabase, `quotes/${data.id}`, file);
+    if (up.error) return { error: `Devis créé, mais le fichier n'a pas pu être joint : ${up.error}` };
+    const ht = num(str(fd, "amount_ht"));
+    if (ht != null && !Number.isNaN(ht) && ht > 0) {
+      await supabase.from("quote_lines").insert({ quote_id: data.id, label: "Selon devis joint", qty: 1, unit_price: money2(ht), sort_order: 0 });
+    }
+  }
   refresh(eventId ? `/evenements/${eventId}` : null);
   return { redirect: `/devis/${data.id}` };
+}
+
+/** Joint (ou remplace) le fichier PDF / photo d'un devis fait hors de l'application. */
+export async function attachQuoteFile(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  try { await guard(); } catch (e) { return { error: (e as Error).message }; }
+  const id = str(fd, "id");
+  if (!id) return { error: "Devis introuvable." };
+  const supabase = await createClient();
+  const up = await upload(supabase, `quotes/${id}`, fd.get("file"));
+  if (up.error) return { error: up.error };
+  if (!up.path) return { error: "Choisissez un fichier." };
+  revalidatePath(`/devis/${id}`);
+  return { ok: "Fichier joint." };
 }
 
 /** Enregistre l'en-tête et toutes les lignes du devis (remplacement complet, simple et sûr). */
