@@ -2,7 +2,7 @@
 -- BOHEMIA OS — Migration 5
 -- 1) Finances des événements confidentielles : budget, devis, paiement
 --    visibles uniquement avec la permission finance.view
---    (Direction + commerciale Cédoua par défaut).
+--    (Direction + commerciale Douae par défaut).
 -- 2) Module Congés & absences : règles d'annulation, notifications aux
 --    responsables, historique.
 -- =====================================================================
@@ -30,9 +30,9 @@ create policy finances_all on public.event_finances for all to authenticated
 create trigger t_touch before update on public.event_finances for each row execute function public.touch_updated_at();
 create trigger t_audit after insert or update or delete on public.event_finances for each row execute function public.audit_trigger();
 
--- La commerciale (Cédoua) voit les montants
+-- La commerciale (Douae) voit les montants
 insert into public.employee_permissions (employee_id, permission, granted)
-select id, 'finance.view', true from public.employees where first_name = 'Cédoua'
+select id, 'finance.view', true from public.employees where first_name = 'Douae'
 on conflict do nothing;
 
 -- Congés : un employé peut créer ou annuler sa propre demande en attente, jamais la valider

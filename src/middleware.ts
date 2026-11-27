@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/env";
 
-const PUBLIC_PATHS = ["/connexion", "/installation", "/kiosque"];
+const PUBLIC_PATHS = ["/connexion", "/installation", "/kiosque", "/validation"];
 const MOBILE_UA = /Android|iPhone|iPad|iPod|Mobile|Windows Phone|webOS|BlackBerry/i;
 
 export async function middleware(request: NextRequest) {

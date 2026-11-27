@@ -21,6 +21,7 @@ import type { Employee, EventFinance, EventRow, Task } from "@/lib/types";
 import { TaskTable } from "../../taches/task-row";
 import { addTeamMember, removeTeamMember, saveFinances } from "../actions";
 import { ServicesCard } from "./services-card";
+import { ClientDocsCard } from "./client-docs-card";
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -102,6 +103,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="space-y-6">
+          <ClientDocsCard eventId={id} clientId={e.client_id ?? null} s={s} />
           {showMoney && (
             <Card className="border-ochre-200">
               <CardHeader title={<span className="flex items-center gap-2"><Lock className="h-4 w-4 text-ochre-700" /> Montants confidentiels</span>}

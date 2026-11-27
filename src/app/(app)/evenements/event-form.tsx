@@ -11,7 +11,7 @@ function d(v: string | null | undefined, fallback?: string) {
   return v ? toLocalISODate(v) : fallback ?? "";
 }
 
-export function EventFields({ e, employees }: { e?: EventRow; employees: Employee[] }) {
+export function EventFields({ e, employees, clients = [], clientId }: { e?: EventRow; employees: Employee[]; clients?: { id: string; name: string; phone: string | null }[]; clientId?: string }) {
   const moments: [string, string, string | null | undefined][] = [
     ["delivery", "Livraison", e?.delivery_at], ["setup", "Installation", e?.setup_at], ["start", "Début", e?.start_at],
     ["end", "Fin", e?.end_at], ["teardown", "Démontage", e?.teardown_at],
@@ -21,8 +21,14 @@ export function EventFields({ e, employees }: { e?: EventRow; employees: Employe
       <section className="grid gap-4 md:grid-cols-3">
         <Field label="Nom de l'événement" className="md:col-span-2"><Input name="name" defaultValue={e?.name} required placeholder="Ex. Mariage Salma & Youssef" /></Field>
         <Field label="Type"><Select name="event_type" defaultValue={e?.event_type ?? "mariage"}>{Object.entries(EVENT_TYPE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
-        <Field label="Client"><Input name="client_name" defaultValue={e?.client_name ?? ""} /></Field>
-        <Field label="Téléphone client"><Input name="client_phone" defaultValue={e?.client_phone ?? ""} /></Field>
+        <Field label="Client (fiche existante)">
+          <Select name="client_id" defaultValue={clientId ?? e?.client_id ?? ""}>
+            <option value="">Nouveau client : remplir à droite</option>
+            {clients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ""}</option>)}
+          </Select>
+        </Field>
+        <Field label="Ou nom du nouveau client" hint="Une fiche client est créée automatiquement"><Input name="client_name" defaultValue={e?.client_id ? "" : e?.client_name ?? ""} placeholder="Ex. Famille Alaoui" /></Field>
+        <Field label="Téléphone du nouveau client"><Input name="client_phone" type="tel" defaultValue={e?.client_id ? "" : e?.client_phone ?? ""} /></Field>
         <Field label="Statut"><Select name="status" defaultValue={e?.status ?? "confirme"}>{Object.entries(EVENT_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</Select></Field>
         <Field label="Date"><Input type="date" name="event_date" defaultValue={e?.event_date} required /></Field>
         <Field label="Adresse / lieu" className="md:col-span-2"><Input name="address" defaultValue={e?.address ?? ""} /></Field>
@@ -34,8 +40,12 @@ export function EventFields({ e, employees }: { e?: EventRow; employees: Employe
           {moments.map(([k, label, v]) => (
             <div key={k} className="rounded-xl border border-line bg-sand-50 p-3">
               <p className="mb-2 text-xs font-medium text-ink-500">{label}</p>
-              <Input type="date" name={`${k}_date`} defaultValue={d(v, e?.event_date)} className="mb-2 h-9 py-1 text-xs" />
-              <Input type="time" name={k} defaultValue={t(v)} className="h-9 py-1" />
+              <label className="block text-[11px] text-ink-500">Jour (vide = jour de l&apos;événement)
+                <Input type="date" name={`${k}_date`} defaultValue={d(v, e?.event_date)} className="mb-2 mt-0.5 h-10 py-1 text-sm" />
+              </label>
+              <label className="block text-[11px] text-ink-500">Heure
+                <Input type="time" name={k} defaultValue={t(v)} className="mt-0.5 h-10 py-1 text-sm" />
+              </label>
             </div>
           ))}
         </div>

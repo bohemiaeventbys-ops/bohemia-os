@@ -11,6 +11,11 @@
   h1, h2, h3 { @apply text-ink; }
   .font-display { font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
   ::selection { @apply bg-nude-200; }
+  /* iPhone : les champs date/heure gardent la largeur du cadre et montrent leur valeur à gauche */
+  input[type="date"], input[type="time"], input[type="datetime-local"] {
+    -webkit-appearance: none; appearance: none; min-width: 0; max-width: 100%; display: block; text-align: left;
+  }
+  input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; }
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0.5; }
 }
