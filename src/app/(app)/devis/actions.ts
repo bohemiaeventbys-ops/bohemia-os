@@ -225,9 +225,11 @@ export async function addPayment(_: ActionResult, fd: FormData): Promise<ActionR
   if (!invoiceId || amount === null || Number.isNaN(amount) || amount <= 0) return { error: "Indiquez le montant reçu." };
   const supabase = await createClient();
   const { data: inv } = await supabase.from("invoices").select("event_id").eq("id", invoiceId).single();
+  const proof = await upload(supabase, `payments/${invoiceId}`, fd.get("proof"));
+  if (proof.error) return { error: `Justificatif : ${proof.error}` };
   const { error } = await supabase.from("payments").insert({
     invoice_id: invoiceId, event_id: inv?.event_id ?? null, amount_mad: amount, paid_on: str(fd, "paid_on") ?? todayISO(),
-    method: str(fd, "method") ?? "Virement", reference: str(fd, "reference"),
+    method: str(fd, "method") ?? "Virement", reference: str(fd, "reference"), proof_path: proof.path,
   });
   if (error) return fail(error);
   refresh(`/factures/${invoiceId}`, inv?.event_id ? `/evenements/${inv.event_id}` : null);

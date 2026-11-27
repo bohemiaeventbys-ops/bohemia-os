@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Banknote, Trash2 } from "lucide-react";
+import { Banknote, Paperclip, Trash2 } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input, Select } from "@/components/ui/field";
 import { PrintButton } from "@/components/print-button";
 import { requirePerm } from "@/lib/auth";
+import { signedUrls } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, todayISO } from "@/lib/dates";
-import { INVOICE_KIND, INVOICE_STATUS, PAY_METHODS, money2, type Client, type Company, type Invoice, type InvoiceLine, type Payment, type Quote } from "@/lib/clients";
+import { CLIENT_DOCS_BUCKET, INVOICE_KIND, INVOICE_STATUS, PAY_METHODS, money2, type Client, type Company, type Invoice, type InvoiceLine, type Payment, type Quote } from "@/lib/clients";
 import type { EventRow } from "@/lib/types";
 import { addPayment, cancelInvoice, deletePayment } from "../../devis/actions";
 import { ClientBlock, DocFooter, DocHeader, DocShell, LinesTable, Totals } from "../../devis/doc";
@@ -32,6 +33,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   ]);
   const lines = (ln ?? []) as InvoiceLine[];
   const payments = (pay ?? []) as Payment[];
+  const proofs = await signedUrls(supabase, CLIENT_DOCS_BUCKET, payments.map((p) => p.proof_path));
   const rest = Math.max(Number(i.total_mad) - Number(i.paid_mad), 0);
 
   return (
@@ -52,6 +54,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               {payments.map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-5 py-2.5 text-sm">
                   <span className="flex-1">{formatDate(p.paid_on)} · {p.method}{p.reference ? ` · ${p.reference}` : ""}</span>
+                  {p.proof_path && proofs.get(p.proof_path) && <a href={proofs.get(p.proof_path)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-semibold text-sage-700 underline"><Paperclip className="h-3.5 w-3.5" /> Justificatif</a>}
                   <b className="tabular-nums">{money2(p.amount_mad)}</b>
                   <ActionForm action={deletePayment}><input type="hidden" name="id" value={p.id} /><button className="rounded p-1 text-ink-300 hover:text-clay-700" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button></ActionForm>
                 </li>
@@ -60,12 +63,13 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           )}
           {rest > 0 && (
             <CardBody className="border-t border-line">
-              <ActionForm action={addPayment} resetOnSuccess className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] sm:items-end">
+              <ActionForm action={addPayment} resetOnSuccess className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_1.3fr_auto] lg:items-end">
                 <input type="hidden" name="invoice_id" value={i.id} />
                 <Field label="Montant reçu (DH)"><Input name="amount_mad" inputMode="decimal" defaultValue={String(rest)} required /></Field>
                 <Field label="Le"><Input name="paid_on" type="date" defaultValue={todayISO()} /></Field>
                 <Field label="Par"><Select name="method" defaultValue="Virement">{PAY_METHODS.map((m) => <option key={m}>{m}</option>)}</Select></Field>
                 <Field label="Réf. (chèque, virement)"><Input name="reference" /></Field>
+                <Field label="Justificatif (capture)"><Input type="file" name="proof" accept="image/*,application/pdf" /></Field>
                 <SubmitButton variant="success">Encaisser</SubmitButton>
               </ActionForm>
             </CardBody>

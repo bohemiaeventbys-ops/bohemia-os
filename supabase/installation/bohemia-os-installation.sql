@@ -1,5 +1,5 @@
 -- BOHEMIA OS : installation complète en une fois (Supabase > SQL Editor > New query > coller > Run)
--- Généré à partir de supabase/migrations/ (11 fichiers).
+-- Généré à partir de supabase/migrations/ (12 fichiers).
 
 
 -- ==================== 20261120000001_fondations.sql ====================
@@ -2976,3 +2976,21 @@ drop trigger if exists t_touch on public.supplier_bank;
 create trigger t_touch before update on public.supplier_bank for each row execute function public.touch_updated_at();
 drop trigger if exists t_audit on public.supplier_bank;
 create trigger t_audit after insert or update or delete on public.supplier_bank for each row execute function public.audit_trigger();
+
+-- ==================== 20261127000012_factures_fournisseurs_tva.sql ====================
+-- =====================================================================
+-- BOHEMIA OS : factures fournisseurs (n°, date, TVA) pour la rubrique TVA
+-- (TVA collectée sur nos factures − TVA payée aux fournisseurs).
+-- Les montants des dépenses restent saisis en TTC (amount_mad).
+-- =====================================================================
+alter table public.expenses
+  add column if not exists invoice_number text,
+  add column if not exists invoice_date date,
+  add column if not exists vat_rate numeric(5, 2) not null default 0 check (vat_rate >= 0 and vat_rate <= 100);
+
+create index if not exists expenses_supplier_idx on public.expenses (supplier_id);
+create index if not exists expenses_invoice_date_idx on public.expenses (invoice_date);
+
+-- Justificatif de paiement (capture du virement, reçu…)
+alter table public.expenses add column if not exists proof_path text;
+alter table public.payments add column if not exists proof_path text;

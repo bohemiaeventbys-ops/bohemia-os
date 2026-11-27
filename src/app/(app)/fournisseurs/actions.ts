@@ -132,3 +132,75 @@ export async function saveSupplierBank(_: ActionResult, fd: FormData): Promise<A
   revalidatePath(`/fournisseurs/${id}`);
   return { ok: "Coordonnées bancaires enregistrées." };
 }
+
+function dh(v: string | null) {
+  if (v == null || v.trim() === "") return null;
+  const n = Number(v.replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : NaN;
+}
+
+/** Facture reçue d'un fournisseur (montant TTC), avec le fichier et, si déjà payée, le virement. */
+export async function addSupplierInvoice(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const s = await requireSession();
+  if (!s.can("finance.view")) return { error: "Réservé à la direction et à la commerciale." };
+  const supplierId = str(fd, "supplier_id");
+  const ttc = dh(str(fd, "amount_mad"));
+  const paid = dh(str(fd, "paid_mad")) ?? 0;
+  if (!supplierId) return { error: "Fournisseur introuvable." };
+  if (ttc == null || Number.isNaN(ttc) || ttc <= 0) return { error: "Indiquez le montant TTC." };
+  if (Number.isNaN(paid)) return { error: "Montant payé invalide." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("expenses").insert({
+    supplier_id: supplierId, event_id: str(fd, "event_id"),
+    label: str(fd, "label") ?? "Facture fournisseur",
+    invoice_number: str(fd, "invoice_number"), invoice_date: str(fd, "invoice_date"),
+    vat_rate: fd.get("with_vat") ? 20 : 0,
+    amount_mad: ttc, paid_mad: Math.min(paid, ttc),
+    payment_method: str(fd, "payment_method"), paid_at: paid > 0 ? (str(fd, "paid_at") ?? new Date().toISOString().slice(0, 10)) : null,
+  }).select("id").single();
+  if (error) return fail(error);
+  const f = fd.get("file");
+  if (f instanceof File && f.size > 0) {
+    if (!f.type.startsWith("image/") && f.type !== "application/pdf") return { error: "Facture enregistrée, mais le fichier doit être une photo ou un PDF." };
+    const path = `expenses/${data.id}/${Date.now()}.${f.type === "application/pdf" ? "pdf" : "jpg"}`;
+    const up = await supabase.storage.from("purchase-files").upload(path, f, { contentType: f.type });
+    if (up.error) return { error: `Facture enregistrée, mais le fichier n'a pas pu être joint : ${up.error.message}` };
+    await supabase.from("expenses").update({ invoice_path: path }).eq("id", data.id);
+  }
+  const pf = fd.get("proof");
+  if (pf instanceof File && pf.size > 0 && (pf.type.startsWith("image/") || pf.type === "application/pdf")) {
+    const path = `expenses/${data.id}/paiement-${Date.now()}.${pf.type === "application/pdf" ? "pdf" : "jpg"}`;
+    const up = await supabase.storage.from("purchase-files").upload(path, pf, { contentType: pf.type });
+    if (!up.error) await supabase.from("expenses").update({ proof_path: path }).eq("id", data.id);
+  }
+  revalidatePath(`/fournisseurs/${supplierId}`);
+  return { ok: "Facture enregistrée." };
+}
+
+/** Enregistre un paiement (virement, espèces…) sur une facture fournisseur. */
+export async function paySupplierInvoice(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const s = await requireSession();
+  if (!s.can("finance.view")) return { error: "Réservé à la direction et à la commerciale." };
+  const id = str(fd, "id");
+  const amount = dh(str(fd, "amount"));
+  if (!id || amount == null || Number.isNaN(amount) || amount <= 0) return { error: "Montant invalide." };
+  const supabase = await createClient();
+  const { data: e } = await supabase.from("expenses").select("amount_mad, paid_mad, supplier_id").eq("id", id).single();
+  if (!e) return { error: "Facture introuvable." };
+  const paid = Math.min(Number(e.paid_mad) + amount, Number(e.amount_mad));
+  let proof: string | null = null;
+  const f = fd.get("proof");
+  if (f instanceof File && f.size > 0) {
+    if (!f.type.startsWith("image/") && f.type !== "application/pdf") return { error: "Justificatif : photo ou PDF uniquement." };
+    proof = `expenses/${id}/paiement-${Date.now()}.${f.type === "application/pdf" ? "pdf" : "jpg"}`;
+    const up = await supabase.storage.from("purchase-files").upload(proof, f, { contentType: f.type });
+    if (up.error) return { error: `Le justificatif n'a pas pu être joint : ${up.error.message}` };
+  }
+  const { error } = await supabase.from("expenses").update({
+    paid_mad: paid, payment_method: str(fd, "payment_method") ?? "virement", paid_at: str(fd, "paid_at") ?? new Date().toISOString().slice(0, 10),
+    ...(proof ? { proof_path: proof } : {}),
+  }).eq("id", id);
+  if (error) return fail(error);
+  if (e.supplier_id) revalidatePath(`/fournisseurs/${e.supplier_id}`);
+  return { ok: "Paiement enregistré." };
+}

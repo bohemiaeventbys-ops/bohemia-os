@@ -20,7 +20,7 @@ export interface Invoice {
   status: "emise" | "partielle" | "payee" | "annulee"; notes: string | null; created_at: string;
 }
 export interface InvoiceLine { id: string; invoice_id: string; label: string; details: string | null; qty: number; unit_price: number; sort_order: number }
-export interface Payment { id: string; invoice_id: string | null; event_id: string | null; amount_mad: number; paid_on: string; method: string; reference: string | null; note: string | null }
+export interface Payment { id: string; invoice_id: string | null; event_id: string | null; amount_mad: number; paid_on: string; method: string; reference: string | null; note: string | null; proof_path?: string | null }
 export interface DesignProof {
   id: string; event_id: string; title: string; version: number; file_path: string; note: string | null; status: "a_valider" | "valide" | "a_modifier" | "annule";
   share_token: string; production_steps: string[]; production_due: string | null; client_comment: string | null; decided_at: string | null; created_by: string | null; created_at: string;

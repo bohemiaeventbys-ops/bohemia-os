@@ -10,12 +10,15 @@ import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/dates";
 import { formatMAD } from "@/lib/format";
-import { PURCHASE_STATUS, SERVICE_STATUS, SUPPLIER_KIND, type EventService, type Expense, type Purchase, type Supplier } from "@/lib/suppliers";
+import { PURCHASE_BUCKET, vatOf, PURCHASE_STATUS, SERVICE_STATUS, SUPPLIER_KIND, type EventService, type Expense, type Purchase, type Supplier } from "@/lib/suppliers";
 import type { EventRow } from "@/lib/types";
 import { ContactButtons } from "../contact-buttons";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input, Select } from "@/components/ui/field";
-import { saveSupplierBank } from "../actions";
+import { addSupplierInvoice, paySupplierInvoice, saveSupplierBank } from "../actions";
+import { DataTable } from "@/components/ui/data-table";
+import { signedUrls } from "@/lib/storage";
+import { todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Fournisseur" };
 
@@ -37,7 +40,11 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
   const services = (svc ?? []) as EventService[];
   const purchases = (pur ?? []) as Purchase[];
   const expenses = (exp ?? []) as Expense[];
-  const evIds = Array.from(new Set(services.map((v) => v.event_id)));
+  const evIds = Array.from(new Set([...services.map((v) => v.event_id), ...expenses.map((e) => e.event_id).filter((v): v is string => !!v)]));
+  const files = fin ? await signedUrls(supabase, PURCHASE_BUCKET, expenses.flatMap((e) => [e.invoice_path, e.proof_path])) : new Map<string, string>();
+  const { data: recentEv } = fin ? await supabase.from("events").select("id, name, event_date").order("event_date", { ascending: false }).limit(80) : { data: [] };
+  const sortedExp = [...expenses].sort((a, b) => (b.invoice_date ?? b.created_at).localeCompare(a.invoice_date ?? a.created_at));
+  const PAYM: Record<string, string> = { virement: "Virement", especes: "Espèces", cheque: "Chèque" };
   const { data: evData } = evIds.length ? await supabase.from("events").select("id, name, event_date").in("id", evIds) : { data: [] };
   const events = new Map(((evData ?? []) as Pick<EventRow, "id" | "name" | "event_date">[]).map((e) => [e.id, e]));
   const expBySvc = new Map(expenses.filter((e) => e.service_id).map((e) => [e.service_id!, e]));
@@ -53,6 +60,89 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
           <ContactButtons s={x} size="lg" />
           {s.can("suppliers.manage") && <ButtonLink href={`/fournisseurs/${id}/modifier`} variant="secondary" size="lg"><Pencil className="h-4 w-4" /> Modifier</ButtonLink>}
         </>} />
+
+      {fin && (
+        <section className="mb-6 space-y-3">
+          <h2 className="font-display text-xl font-semibold">Factures et paiements</h2>
+          <DataTable exportName={`factures-${x.name}`} empty="Aucune facture enregistrée pour ce fournisseur."
+            columns={[
+              { key: "date", label: "Date", type: "date" },
+              { key: "number", label: "N° facture", filter: "text" },
+              { key: "label", label: "Objet", filter: "text" },
+              { key: "event", label: "Événement", filter: "select" },
+              { key: "ht", label: "HT", type: "money", sum: true },
+              { key: "tva", label: "TVA", type: "money", sum: true },
+              { key: "ttc", label: "TTC", type: "money", sum: true },
+              { key: "rest", label: "Reste", type: "money", sum: true },
+              { key: "paid", label: "Payée", type: "badge", filter: "select" },
+              { key: "how", label: "Paiement", filter: "select" },
+              { key: "proof", label: "Justificatif" },
+            ]}
+            rows={sortedExp.map((e) => {
+              const ttc = Number(e.amount_mad), tva = vatOf(ttc, Number(e.vat_rate ?? 0)), rest = Math.max(0, ttc - Number(e.paid_mad));
+              const paid = rest <= 0 ? "✓ Payée" : Number(e.paid_mad) > 0 ? "Partielle" : "✗ Non payée";
+              return {
+                id: e.id, view: e.invoice_path ? files.get(e.invoice_path) : null, viewExternal: true,
+                cells: { date: e.invoice_date ?? e.created_at.slice(0, 10), number: e.invoice_number, label: e.label, event: e.event_id ? events.get(e.event_id)?.name : null,
+                  ht: ttc - tva, tva, ttc, rest, paid, how: e.payment_method ? (PAYM[e.payment_method] ?? e.payment_method) : null,
+                  proof: e.proof_path ? "Oui" : null },
+                tones: { paid: rest <= 0 ? "sage" : Number(e.paid_mad) > 0 ? "ochre" : "clay" },
+              };
+            })} />
+          <p className="text-xs text-ink-500">L&apos;œil ouvre la facture. Les justificatifs de paiement s&apos;ouvrent ci-dessous.</p>
+          {sortedExp.some((e) => e.proof_path || Number(e.amount_mad) > Number(e.paid_mad)) && (
+            <Card>
+              <ul className="divide-y divide-line">
+                {sortedExp.filter((e) => e.proof_path || Number(e.amount_mad) > Number(e.paid_mad)).map((e) => {
+                  const rest = Math.max(0, Number(e.amount_mad) - Number(e.paid_mad));
+                  return (
+                    <li key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+                      <span className="min-w-0 flex-1 font-medium">{e.invoice_number ? `Facture ${e.invoice_number}` : e.label}</span>
+                      {e.proof_path && files.get(e.proof_path) && <a href={files.get(e.proof_path)} target="_blank" rel="noreferrer" className="font-semibold text-sage-700 underline">Voir le justificatif</a>}
+                      {rest > 0 && (
+                        <ActionForm action={paySupplierInvoice} className="flex flex-wrap items-end gap-2">
+                          <input type="hidden" name="id" value={e.id} />
+                          <Field label="Montant payé"><Input name="amount" inputMode="decimal" defaultValue={String(rest)} className="h-10 w-28" /></Field>
+                          <Field label="Le"><Input type="date" name="paid_at" defaultValue={todayISO()} className="h-10" /></Field>
+                          <Field label="Par"><Select name="payment_method" defaultValue="virement" className="h-10"><option value="virement">Virement</option><option value="especes">Espèces</option><option value="cheque">Chèque</option></Select></Field>
+                          <Field label="Capture du paiement"><Input type="file" name="proof" accept="image/*,application/pdf" className="h-10 w-48" /></Field>
+                          <SubmitButton size="sm" variant="success">Marquer payé</SubmitButton>
+                        </ActionForm>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
+          )}
+          <Card>
+            <CardHeader title="Ajouter une facture de ce fournisseur" subtitle="Montant TTC. Si elle est déjà payée, indiquez le montant payé et joignez la capture du virement." />
+            <CardBody>
+              <ActionForm action={addSupplierInvoice} resetOnSuccess className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <input type="hidden" name="supplier_id" value={id} />
+                <Field label="N° de facture"><Input name="invoice_number" /></Field>
+                <Field label="Date de la facture"><Input type="date" name="invoice_date" defaultValue={todayISO()} /></Field>
+                <Field label="Objet"><Input name="label" placeholder="Ex. Impression vinyle 20 m²" /></Field>
+                <Field label="Événement (facultatif)">
+                  <Select name="event_id" defaultValue=""><option value="">—</option>{((recentEv ?? []) as Pick<EventRow, "id" | "name" | "event_date">[]).map((ev) => <option key={ev.id} value={ev.id}>{formatDate(ev.event_date)} · {ev.name}</option>)}</Select>
+                </Field>
+                <Field label="Montant TTC (DH)"><Input name="amount_mad" inputMode="decimal" required /></Field>
+                <label className="block"><span className="label">TVA</span>
+                  <span className="flex h-11 items-center gap-2 rounded-xl border-2 border-sage-500 bg-sage-50 px-3 text-sm font-semibold text-sage-700">
+                    <input type="checkbox" name="with_vat" defaultChecked={bank?.invoices_ttc ?? true} className="h-5 w-5" /> TVA 20 % incluse
+                  </span>
+                </label>
+                <Field label="Fichier de la facture"><Input type="file" name="file" accept="image/*,application/pdf" /></Field>
+                <Field label="Déjà payé (DH)"><Input name="paid_mad" inputMode="decimal" placeholder="0" /></Field>
+                <Field label="Payé le"><Input type="date" name="paid_at" defaultValue={todayISO()} /></Field>
+                <Field label="Par"><Select name="payment_method" defaultValue={bank?.payment_mode === "especes" ? "especes" : "virement"}><option value="virement">Virement</option><option value="especes">Espèces</option><option value="cheque">Chèque</option></Select></Field>
+                <Field label="Capture du paiement"><Input type="file" name="proof" accept="image/*,application/pdf" /></Field>
+                <div className="flex items-end"><SubmitButton>Enregistrer la facture</SubmitButton></div>
+              </ActionForm>
+            </CardBody>
+          </Card>
+        </section>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">

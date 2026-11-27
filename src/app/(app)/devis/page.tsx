@@ -1,15 +1,12 @@
-import Link from "next/link";
 import { FileText, Plus } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
-import { Empty } from "@/components/ui/empty";
+import { DataTable } from "@/components/ui/data-table";
 import { Stat } from "@/components/ui/stat";
 import { requirePerm } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { diffDays, formatDate, todayISO } from "@/lib/dates";
+import { diffDays, todayISO } from "@/lib/dates";
 import { formatMAD } from "@/lib/format";
 import { INVOICE_KIND, INVOICE_STATUS, QUOTE_STATUS, type Client, type Invoice, type Quote } from "@/lib/clients";
 import type { EventRow } from "@/lib/types";
@@ -37,7 +34,6 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
   const pending = quotes.filter((q) => q.status === "envoye");
   const month = today.slice(0, 7);
   const signed = quotes.filter((q) => q.status === "accepte" && (q.decided_at ?? "").slice(0, 7) === month).reduce((a, q) => a + Number(q.total_mad), 0);
-  const who = (c: string | null, e: string | null) => [c ? clients.get(c) : null, e ? events.get(e)?.name : null].filter(Boolean).join(" · ");
 
   return (
     <>
@@ -53,31 +49,51 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
         { key: "factures", label: "Factures", href: "/devis?vue=factures", count: invoices.length },
         { key: "encaisser", label: "À encaisser", href: "/devis?vue=encaisser", count: open.length },
       ]} />
-      {vue === "devis" && (quotes.length === 0 ? <Card><Empty title="Aucun devis.">Créez-le depuis un événement ou avec « Nouveau devis ».</Empty></Card> : (
-        <Card><ul className="divide-y divide-line">
-          {quotes.map((q) => (
-            <li key={q.id}><Link href={`/devis/${q.id}`} className="flex flex-wrap items-center gap-3 px-5 py-3.5 hover:bg-sand-50">
-              <span className="min-w-0 flex-1"><span className="block font-semibold">{q.number} · {q.title}</span><span className="block text-sm text-ink-500">{who(q.client_id, q.event_id) || "—"} · {formatDate(q.issue_date)}</span></span>
-              <span className="font-semibold tabular-nums">{formatMAD(q.total_mad)}</span>
-              <Badge tone={QUOTE_STATUS[q.status].tone}>{QUOTE_STATUS[q.status].label}</Badge>
-            </Link></li>
-          ))}
-        </ul></Card>
-      ))}
-      {vue !== "devis" && ((vue === "factures" ? invoices : open).length === 0 ? <Card><Empty title={vue === "encaisser" ? "Tout est encaissé." : "Aucune facture."}>Les factures se créent depuis un devis accepté.</Empty></Card> : (
-        <Card><ul className="divide-y divide-line">
-          {(vue === "factures" ? invoices : open).map((i) => {
+      {vue === "devis" && (
+        <DataTable exportName="devis" empty="Aucun devis. Créez-le depuis un événement ou avec « Nouveau devis »."
+          columns={[
+            { key: "number", label: "N°", filter: "text" },
+            { key: "date", label: "Date", type: "date" },
+            { key: "client", label: "Client", filter: "select" },
+            { key: "event", label: "Événement", filter: "select" },
+            { key: "title", label: "Objet", filter: "text" },
+            { key: "ht", label: "HT", type: "money", sum: true },
+            { key: "ttc", label: "TTC", type: "money", sum: true },
+            { key: "status", label: "Statut", type: "badge", filter: "select" },
+          ]}
+          rows={quotes.map((q) => ({
+            id: q.id, href: `/devis/${q.id}`, view: `/devis/${q.id}/imprimer`,
+            cells: { number: q.number, date: q.issue_date, client: q.client_id ? clients.get(q.client_id) : null, event: q.event_id ? events.get(q.event_id)?.name : null,
+              title: q.title, ht: Number(q.subtotal_mad), ttc: Number(q.total_mad), status: QUOTE_STATUS[q.status].label },
+            tones: { status: QUOTE_STATUS[q.status].tone },
+          }))} />
+      )}
+      {vue !== "devis" && (
+        <DataTable exportName={vue === "factures" ? "factures" : "a-encaisser"} empty={vue === "encaisser" ? "Tout est encaissé." : "Aucune facture."}
+          columns={[
+            { key: "number", label: "N°", filter: "text" },
+            { key: "date", label: "Date", type: "date" },
+            { key: "client", label: "Client", filter: "select" },
+            { key: "event", label: "Événement", filter: "select" },
+            { key: "kind", label: "Type", filter: "select" },
+            { key: "ht", label: "HT", type: "money", sum: true },
+            { key: "ttc", label: "TTC", type: "money", sum: true },
+            { key: "rest", label: "Reste", type: "money", sum: true },
+            { key: "status", label: "Statut", type: "badge", filter: "select" },
+            { key: "due", label: "Échéance", type: "date" },
+          ]}
+          rows={(vue === "factures" ? invoices : open).map((i) => {
             const late = i.due_date && i.status !== "payee" && i.status !== "annulee" && diffDays(i.due_date, today) < 0;
-            return (
-              <li key={i.id}><Link href={`/factures/${i.id}`} className="flex flex-wrap items-center gap-3 px-5 py-3.5 hover:bg-sand-50">
-                <span className="min-w-0 flex-1"><span className="block font-semibold">{i.number} · {INVOICE_KIND[i.kind]}</span><span className="block text-sm text-ink-500">{who(i.client_id, i.event_id) || "—"} · {formatDate(i.issue_date)}{late ? <b className="text-clay-700"> · échue le {formatDate(i.due_date)}</b> : ""}</span></span>
-                <span className="text-right tabular-nums"><span className="block font-semibold">{formatMAD(i.total_mad)}</span>{i.status === "partielle" && <span className="block text-xs text-ink-500">reste {formatMAD(Number(i.total_mad) - Number(i.paid_mad))}</span>}</span>
-                <Badge tone={INVOICE_STATUS[i.status].tone}>{INVOICE_STATUS[i.status].label}</Badge>
-              </Link></li>
-            );
-          })}
-        </ul></Card>
-      ))}
+            return {
+              id: i.id, href: `/factures/${i.id}`, view: `/factures/${i.id}`,
+              cells: { number: i.number, date: i.issue_date, client: i.client_id ? clients.get(i.client_id) : null, event: i.event_id ? events.get(i.event_id)?.name : null,
+                kind: INVOICE_KIND[i.kind], ht: Number(i.subtotal_mad), ttc: Number(i.total_mad),
+                rest: i.status === "annulee" ? 0 : Math.max(0, Number(i.total_mad) - Number(i.paid_mad)),
+                status: late ? "En retard" : INVOICE_STATUS[i.status].label, due: i.due_date },
+              tones: { status: late ? "clay" : INVOICE_STATUS[i.status].tone },
+            };
+          })} />
+      )}
     </>
   );
 }
