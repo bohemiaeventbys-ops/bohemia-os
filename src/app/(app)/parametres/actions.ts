@@ -121,7 +121,7 @@ export async function saveCompany(_: ActionResult, fd: FormData): Promise<Action
   const { error } = await supabase.from("company_settings").update({
     company_name: str(fd, "company_name") ?? "Bohemia Events", overdue_notify_management: fd.get("overdue_notify_management") === "on", updated_at: new Date().toISOString(),
     legal_name: str(fd, "legal_name") ?? str(fd, "company_name") ?? "Bohemia Events", address: str(fd, "address"), phone: str(fd, "phone"), email: str(fd, "email"),
-    ice: str(fd, "ice"), rc: str(fd, "rc"), if_number: str(fd, "if_number"), patente: str(fd, "patente"), bank_name: str(fd, "bank_name"), rib: str(fd, "rib"),
+    ice: str(fd, "ice"), rc: str(fd, "rc"), if_number: str(fd, "if_number"), patente: str(fd, "patente"), bank_name: str(fd, "bank_name"), rib: str(fd, "rib"), website: str(fd, "website"), signatory: str(fd, "signatory"),
     vat_rate: n("vat_rate", 20), deposit_pct: n("deposit_pct", 50), quote_validity_days: Math.round(n("quote_validity_days", 15)),
     ...(str(fd, "quote_terms") ? { quote_terms: str(fd, "quote_terms") } : {}), ...(str(fd, "contract_terms") ? { contract_terms: str(fd, "contract_terms") } : {}),
   }).eq("id", true);

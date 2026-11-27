@@ -43,7 +43,9 @@ export default async function PrintQuote({ params }: { params: Promise<{ id: str
         </section>
         <Totals rows={[
           ...(Number(q.discount_mad) > 0 ? [["Sous-total HT", gross], ["Remise", -Number(q.discount_mad)]] as [string, number][] : []),
-          ["Total HT", Number(q.subtotal_mad)], [`TVA ${Number(q.vat_rate)} %`, Number(q.vat_mad)], ["Total TTC", Number(q.total_mad), true],
+          ...(Number(q.vat_rate) > 0
+            ? [["Total HT", Number(q.subtotal_mad)], [`TVA ${Number(q.vat_rate)} %`, Number(q.vat_mad)], ["Total TTC", Number(q.total_mad), true]] as [string, number, boolean?][]
+            : [["Total", Number(q.total_mad), true]] as [string, number, boolean?][]),
         ]} />
         <section className="grid gap-6 sm:grid-cols-2">
           <div>

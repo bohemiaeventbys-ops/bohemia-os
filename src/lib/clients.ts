@@ -28,7 +28,7 @@ export interface DesignProof {
 export interface Company {
   company_name: string; legal_name: string; address: string | null; phone: string | null; email: string | null; ice: string | null; rc: string | null;
   if_number: string | null; patente: string | null; bank_name: string | null; rib: string | null; vat_rate: number; deposit_pct: number;
-  quote_validity_days: number; quote_terms: string; contract_terms: string;
+  quote_validity_days: number; quote_terms: string; contract_terms: string; website?: string | null; signatory?: string | null;
 }
 
 export const QUOTE_STATUS: Record<Quote["status"], { label: string; tone: Tone }> = {

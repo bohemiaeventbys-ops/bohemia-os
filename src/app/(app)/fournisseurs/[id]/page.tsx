@@ -13,6 +13,9 @@ import { formatMAD } from "@/lib/format";
 import { PURCHASE_STATUS, SERVICE_STATUS, SUPPLIER_KIND, type EventService, type Expense, type Purchase, type Supplier } from "@/lib/suppliers";
 import type { EventRow } from "@/lib/types";
 import { ContactButtons } from "../contact-buttons";
+import { ActionForm, SubmitButton } from "@/components/ui/action-form";
+import { Field, Input, Select } from "@/components/ui/field";
+import { saveSupplierBank } from "../actions";
 
 export const metadata = { title: "Fournisseur" };
 
@@ -28,6 +31,9 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
     supabase.from("purchase_requests").select("*").eq("supplier_id", id).order("created_at", { ascending: false }).limit(50),
     fin ? supabase.from("expenses").select("*").eq("supplier_id", id) : Promise.resolve({ data: [] }),
   ]);
+  const { data: bank } = fin
+    ? await supabase.from("supplier_bank").select("*").eq("supplier_id", id).maybeSingle<{ bank_name: string | null; rib: string | null; payment_mode: string; invoices_ttc: boolean }>()
+    : { data: null };
   const services = (svc ?? []) as EventService[];
   const purchases = (pur ?? []) as Purchase[];
   const expenses = (exp ?? []) as Expense[];
@@ -104,6 +110,25 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
               <CardBody className="grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-ink-400">Total</p><p className="font-display text-2xl font-semibold">{formatMAD(total)}</p></div>
                 <div className={`rounded-xl p-3 ${unpaid > 0 ? "bg-clay-50" : "bg-sage-50"}`}><p className="text-xs text-ink-400">Reste à payer</p><p className="font-display text-2xl font-semibold">{formatMAD(unpaid)}</p></div>
+              </CardBody>
+            </Card>
+          )}
+          {fin && (
+            <Card>
+              <CardHeader title="Banque et paiement" subtitle="Confidentiel : direction et commerciale" />
+              <CardBody>
+                <ActionForm action={saveSupplierBank} className="space-y-3">
+                  <input type="hidden" name="supplier_id" value={id} />
+                  <Field label="Banque"><Input name="bank_name" defaultValue={bank?.bank_name ?? ""} placeholder="Ex. Attijariwafa Bank" /></Field>
+                  <Field label="RIB (24 chiffres)"><Input name="rib" defaultValue={bank?.rib ?? ""} inputMode="numeric" /></Field>
+                  <Field label="Paiement habituel">
+                    <Select name="payment_mode" defaultValue={bank?.payment_mode ?? "virement"}>
+                      <option value="virement">Virement</option><option value="especes">Espèces</option><option value="cheque">Chèque</option><option value="mixte">Virement ou espèces</option>
+                    </Select>
+                  </Field>
+                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="invoices_ttc" defaultChecked={bank?.invoices_ttc ?? true} className="h-5 w-5" /> Nous remet une facture TTC</label>
+                  <SubmitButton variant="secondary">Enregistrer</SubmitButton>
+                </ActionForm>
               </CardBody>
             </Card>
           )}

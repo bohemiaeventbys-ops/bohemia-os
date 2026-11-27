@@ -114,3 +114,21 @@ export async function deleteService(_: ActionResult, fd: FormData): Promise<Acti
   revalidatePath(`/evenements/${data.event_id}`);
   return { ok: "Prestation supprimée." };
 }
+
+/** Banque du fournisseur (RIB, mode de paiement) : Direction et commerciale seulement. */
+export async function saveSupplierBank(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const s = await requireSession();
+  if (!s.can("finance.view")) return { error: "Réservé à la direction et à la commerciale." };
+  const id = str(fd, "supplier_id");
+  if (!id) return { error: "Fournisseur introuvable." };
+  const rib = (str(fd, "rib") ?? "").replace(/\s/g, "");
+  if (rib && !/^\d{24}$/.test(rib)) return { error: "Le RIB doit contenir 24 chiffres." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("supplier_bank").upsert({
+    supplier_id: id, bank_name: str(fd, "bank_name"), rib: rib || null,
+    payment_mode: str(fd, "payment_mode") ?? "virement", invoices_ttc: fd.get("invoices_ttc") === "on",
+  });
+  if (error) return fail(error);
+  revalidatePath(`/fournisseurs/${id}`);
+  return { ok: "Coordonnées bancaires enregistrées." };
+}

@@ -9,22 +9,21 @@ export function DocShell({ children }: { children: ReactNode }) {
 
 export function DocHeader({ company, kind, number, date, extra }: { company: Company | null; kind: string; number: string; date: string; extra?: ReactNode }) {
   return (
-    <header className="flex flex-wrap items-start justify-between gap-6 border-b border-line pb-6">
-      <div>
-        <p className="font-display text-3xl font-semibold tracking-[0.16em]">BOHEMIA</p>
-        <p className="text-[11px] uppercase tracking-[0.3em] text-ink-400">Events</p>
-        <div className="mt-3 space-y-0.5 text-xs text-ink-500">
-          {company?.legal_name && <p className="font-semibold text-ink-600">{company.legal_name}</p>}
-          {company?.address && <p className="whitespace-pre-line">{company.address}</p>}
-          {company?.phone && <p>{company.phone}</p>}
-          {company?.email && <p>{company.email}</p>}
+    <header className="space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-6 border-b-4 border-[#E5399B] pb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-bohemia.png" alt="Bohemia Event" className="h-20 w-auto" />
+        <div className="text-right">
+          <p className="text-2xl font-bold text-[#1FA9C9]">{kind} {number}</p>
+          <p className="text-ink-500">Casablanca, le {formatDate(date)}</p>
+          {extra}
         </div>
       </div>
-      <div className="text-right">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-600">{kind}</p>
-        <p className="mt-1 font-display text-3xl font-semibold">N° {number}</p>
-        <p className="text-ink-500">Casablanca, le {formatDate(date)}</p>
-        {extra}
+      <div className="space-y-0.5 text-xs text-ink-500">
+        <p className="text-sm font-bold text-ink">{company?.legal_name ?? "BOHEMIA EVENTS SARL"}</p>
+        {company?.address && <p className="whitespace-pre-line italic">{company.address}</p>}
+        {company?.phone && <p className="italic">Téléphone : {company.phone}</p>}
+        {company?.ice && <p>ICE : {company.ice}</p>}
       </div>
     </header>
   );
@@ -91,14 +90,35 @@ export function Totals({ rows }: { rows: [string, number, boolean?][] }) {
   );
 }
 
-export function DocFooter({ company }: { company: Company | null }) {
-  const ids = [company?.ice && `ICE ${company.ice}`, company?.rc && `RC ${company.rc}`, company?.if_number && `IF ${company.if_number}`, company?.patente && `Patente ${company.patente}`].filter(Boolean);
-  const bank = [company?.bank_name, company?.rib && `RIB ${company.rib}`].filter(Boolean);
-  if (!ids.length && !bank.length) return null;
+export function DocFooter({ company, signature = false }: { company: Company | null; signature?: boolean }) {
   return (
-    <footer className="border-t border-line pt-4 text-center text-[11px] text-ink-400">
-      {ids.length > 0 && <p>{company?.legal_name} · {ids.join(" · ")}</p>}
-      {bank.length > 0 && <p>{bank.join(" · ")}</p>}
+    <footer className="space-y-6">
+      {signature && company?.signatory && (
+        <p className="ml-auto w-full max-w-xs bg-sand-50 py-1 text-center text-xs text-ink-600">Signature {company.signatory}</p>
+      )}
+      <div className="grid gap-4 border-t border-ink pt-3 text-[11px] text-ink-500 sm:grid-cols-3 print:grid-cols-3">
+        <div>
+          <p className="mb-1 font-bold text-ink">Siège social</p>
+          {company?.address && <p className="whitespace-pre-line">{company.address}</p>}
+          {company?.ice && <p>ICE : {company.ice}</p>}
+          {company?.if_number && <p>IF : {company.if_number}</p>}
+          {company?.rc && <p>RC : {company.rc}</p>}
+          {company?.patente && <p>Patente : {company.patente}</p>}
+        </div>
+        <div>
+          <p className="mb-1 font-bold text-ink">Coordonnées</p>
+          <p>{company?.company_name ?? "Bohemia Events"}</p>
+          {company?.phone && <p>Téléphone : {company.phone}</p>}
+          {company?.email && <p>E-mail : {company.email}</p>}
+          {company?.website && <p className="text-[#1FA9C9] underline">{company.website}</p>}
+        </div>
+        <div>
+          <p className="mb-1 font-bold text-ink">Détails bancaires</p>
+          {company?.bank_name && <p>Banque : {company.bank_name}</p>}
+          {company?.rib && <p>RIB : {company.rib}</p>}
+        </div>
+      </div>
+      <div className="h-3 bg-[#E5399B] print:[print-color-adjust:exact]" />
     </footer>
   );
 }
