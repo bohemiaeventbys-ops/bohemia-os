@@ -49,15 +49,21 @@ export function QuoteLines({ initial, vat, discount, deposit, locked }: {
 
       <div className="grid gap-3 sm:grid-cols-3">
         <label className="block"><span className="label">Remise (DH)</span><input name="discount_mad" value={v.discount} onChange={(e) => setV({ ...v, discount: e.target.value })} disabled={locked} inputMode="decimal" className="field" /></label>
-        <label className="block"><span className="label">TVA (%)</span><input name="vat_rate" value={v.vat} onChange={(e) => setV({ ...v, vat: e.target.value })} disabled={locked} inputMode="decimal" className="field" /></label>
+        <div className="block"><span className="label">TVA</span>
+          <input type="hidden" name="vat_rate" value={v.vat} />
+          <button type="button" disabled={locked} onClick={() => setV({ ...v, vat: n(v.vat) > 0 ? "0" : "20" })}
+            className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 text-sm font-semibold transition ${n(v.vat) > 0 ? "border-sage-500 bg-sage-50 text-sage-700" : "border-line bg-white text-ink-500"}`}>
+            {n(v.vat) > 0 ? "✓ TVA 20 % ajoutée (TTC)" : "+ Ajouter la TVA 20 %"}
+          </button>
+        </div>
         <label className="block"><span className="label">Acompte (%)</span><input name="deposit_pct" value={v.deposit} onChange={(e) => setV({ ...v, deposit: e.target.value })} disabled={locked} inputMode="decimal" className="field" /></label>
       </div>
       <dl className="ml-auto max-w-xs space-y-1 rounded-xl bg-sand-50 p-4 text-sm tabular-nums">
         {n(v.discount) > 0 && <div className="flex justify-between"><dt className="text-ink-500">Sous-total</dt><dd>{fmt(sum)}</dd></div>}
         {n(v.discount) > 0 && <div className="flex justify-between"><dt className="text-ink-500">Remise</dt><dd>− {fmt(n(v.discount))}</dd></div>}
         <div className="flex justify-between"><dt className="text-ink-500">Total HT</dt><dd>{fmt(ht)}</dd></div>
-        <div className="flex justify-between"><dt className="text-ink-500">TVA {n(v.vat)} %</dt><dd>{fmt(tva)}</dd></div>
-        <div className="flex justify-between border-t border-line pt-1 text-base font-bold"><dt>Total TTC</dt><dd>{fmt(ht + tva)}</dd></div>
+        {n(v.vat) > 0 && <div className="flex justify-between"><dt className="text-ink-500">TVA {n(v.vat)} %</dt><dd>{fmt(tva)}</dd></div>}
+        <div className="flex justify-between border-t border-line pt-1 text-base font-bold"><dt>{n(v.vat) > 0 ? "Total TTC" : "Total"}</dt><dd>{fmt(ht + tva)}</dd></div>
         <div className="flex justify-between text-ink-500"><dt>Acompte {n(v.deposit)} %</dt><dd>{fmt(Math.round((ht + tva) * n(v.deposit)) / 100)}</dd></div>
       </dl>
     </div>

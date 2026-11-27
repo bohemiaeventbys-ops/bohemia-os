@@ -269,10 +269,11 @@ export async function createInvoice(_: ActionResult, fd: FormData): Promise<Acti
   if (!clientId) return { error: "Choisissez le client (ou un événement lié à un client)." };
   const ht = num(str(fd, "amount_ht"));
   if (ht == null || Number.isNaN(ht) || ht <= 0) return { error: "Indiquez le montant HT." };
-  const vat = num(str(fd, "vat_rate"));
+  const vatValue = num(str(fd, "vat_value"));
+  const vat = fd.get("with_vat") ? (vatValue == null || Number.isNaN(vatValue) ? 20 : vatValue) : 0;
   const { data, error } = await supabase.from("invoices").insert({
     kind: "totale", event_id: eventId, client_id: clientId,
-    vat_rate: vat == null || Number.isNaN(vat) ? 20 : vat,
+    vat_rate: vat,
     issue_date: str(fd, "issue_date") ?? todayISO(), notes: str(fd, "notes"),
   }).select("id").single();
   if (error) return fail(error);

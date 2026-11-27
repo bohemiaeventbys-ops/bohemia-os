@@ -37,7 +37,12 @@ export default async function NewInvoice({ searchParams }: { searchParams: Promi
           <Field label="Objet de la facture"><Input name="label" defaultValue="Décoration événement" required /></Field>
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Montant HT (DH)"><Input name="amount_ht" inputMode="decimal" placeholder="Ex. 10000" required /></Field>
-            <Field label="TVA (%)"><Input name="vat_rate" inputMode="decimal" defaultValue={String(co?.vat_rate ?? 20)} /></Field>
+            <label className="block"><span className="label">TVA</span>
+              <span className="flex h-11 items-center gap-2 rounded-xl border-2 border-sage-500 bg-sage-50 px-3 text-sm font-semibold text-sage-700">
+                <input type="checkbox" name="with_vat" defaultChecked className="h-5 w-5 accent-current" /> Ajouter la TVA {String(co?.vat_rate ?? 20)} %
+              </span>
+              <input type="hidden" name="vat_value" value={String(co?.vat_rate ?? 20)} />
+            </label>
             <Field label="Date"><Input type="date" name="issue_date" defaultValue={todayISO()} /></Field>
           </div>
           <Field label="Note (facultatif)"><Textarea name="notes" rows={2} /></Field>

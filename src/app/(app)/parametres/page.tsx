@@ -35,6 +35,8 @@ export default async function CompanySettings() {
           <Field label="Patente"><Input name="patente" defaultValue={c?.patente ?? ""} /></Field>
           <Field label="Banque"><Input name="bank_name" defaultValue={c?.bank_name ?? ""} /></Field>
           <Field label="RIB (24 chiffres)"><Input name="rib" defaultValue={c?.rib ?? ""} inputMode="numeric" /></Field>
+          <Field label="Site web"><Input name="website" defaultValue={c?.website ?? ""} placeholder="www.bohemiaevent.ma" /></Field>
+          <Field label="Signataire des factures"><Input name="signatory" defaultValue={c?.signatory ?? ""} placeholder="Mme Sara El Mars" /></Field>
         </CardBody>
       </Card>
       <Card>

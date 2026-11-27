@@ -80,11 +80,13 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         <ClientBlock client={client} event={event} />
         <LinesTable lines={lines} />
         <Totals rows={[
-          ["Total HT", Number(i.subtotal_mad)], [`TVA ${Number(i.vat_rate)} %`, Number(i.vat_mad)], ["Total TTC", Number(i.total_mad), true],
+          ...(Number(i.vat_rate) > 0
+            ? [["Total HT", Number(i.subtotal_mad)], [`TVA ${Number(i.vat_rate)} %`, Number(i.vat_mad)], ["Total TTC", Number(i.total_mad), true]] as [string, number, boolean?][]
+            : [["Total", Number(i.total_mad), true]] as [string, number, boolean?][]),
           ...(Number(i.paid_mad) > 0 ? [["Déjà réglé", Number(i.paid_mad)], ["Reste à payer", rest, true]] as [string, number, boolean?][] : []),
         ]} />
         {company?.rib && <p className="text-ink-600">Règlement par virement : {company.bank_name ? `${company.bank_name}, ` : ""}RIB {company.rib}</p>}
-        <DocFooter company={company} />
+        <DocFooter company={company} signature />
       </DocShell>
 
       {i.status !== "annulee" && Number(i.paid_mad) === 0 && (
