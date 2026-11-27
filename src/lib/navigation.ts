@@ -29,6 +29,7 @@ export function buildNav(s: Session) {
   main.push({ key: "pointage", label: s.can("attendance.view_all") || managerish ? "Pointage" : "Mon pointage", href: "/pointage", icon: "clock", tone: "teal" });
   if (s.can("clients.manage") || s.can("events.manage") || s.can("finance.view")) main.push({ key: "clients", label: "Clients", href: "/clients", icon: "contact", tone: "rose" });
   if (s.can("finance.view")) main.push({ key: "devis", label: "Devis & factures", href: "/devis", icon: "receipt", tone: "ink" });
+  if (s.can("finance.view")) main.push({ key: "tva", label: "TVA", href: "/tva", icon: "receipt", tone: "ochre" });
   main.push({ key: "stock", label: "Dépôt & Stock", href: "/stock", icon: "warehouse", tone: "ochre" });
   main.push({ key: "achats", label: "Achats", href: "/achats", icon: "shopping", tone: "teal" });
   main.push({ key: "fournisseurs", label: "Fournisseurs", href: "/fournisseurs", icon: "store", tone: "plum" });

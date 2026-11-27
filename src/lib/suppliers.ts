@@ -19,7 +19,10 @@ export interface PurchaseLine { id: string; request_id: string; label: string; q
 export interface Expense {
   id: string; event_id: string | null; supplier_id: string | null; service_id: string | null; purchase_id: string | null; label: string;
   amount_mad: number; paid_mad: number; due_date: string | null; paid_at: string | null; payment_method: string | null; created_at: string;
+  invoice_path?: string | null; proof_path?: string | null; invoice_number?: string | null; invoice_date?: string | null; vat_rate?: number;
 }
+/** TVA contenue dans un montant TTC */
+export const vatOf = (ttc: number, rate: number) => Math.round((ttc * rate) / (100 + rate) * 100) / 100;
 
 export const SUPPLIER_KIND: Record<Supplier["kind"], { label: string; plural: string; tone: Tone }> = {
   fournisseur: { label: "Fournisseur", plural: "Fournisseurs", tone: "mist" },
