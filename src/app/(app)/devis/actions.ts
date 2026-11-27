@@ -255,3 +255,31 @@ export async function cancelInvoice(_: ActionResult, fd: FormData): Promise<Acti
   refresh(`/factures/${id}`);
   return { ok: "Facture annulée (le numéro reste réservé)." };
 }
+
+/** Facture directe, sans devis : un objet court (ex. « Décoration événement ») et un montant HT. */
+export async function createInvoice(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  try { await guard(); } catch (e) { return { error: (e as Error).message }; }
+  const supabase = await createClient();
+  const eventId = str(fd, "event_id");
+  let clientId = str(fd, "client_id");
+  if (eventId && !clientId) {
+    const { data: e } = await supabase.from("events").select("client_id").eq("id", eventId).maybeSingle<{ client_id: string | null }>();
+    clientId = e?.client_id ?? null;
+  }
+  if (!clientId) return { error: "Choisissez le client (ou un événement lié à un client)." };
+  const ht = num(str(fd, "amount_ht"));
+  if (ht == null || Number.isNaN(ht) || ht <= 0) return { error: "Indiquez le montant HT." };
+  const vat = num(str(fd, "vat_rate"));
+  const { data, error } = await supabase.from("invoices").insert({
+    kind: "totale", event_id: eventId, client_id: clientId,
+    vat_rate: vat == null || Number.isNaN(vat) ? 20 : vat,
+    issue_date: str(fd, "issue_date") ?? todayISO(), notes: str(fd, "notes"),
+  }).select("id").single();
+  if (error) return fail(error);
+  const { error: e2 } = await supabase.from("invoice_lines").insert({
+    invoice_id: data.id, label: str(fd, "label") ?? "Décoration événement", qty: 1, unit_price: money2(ht), sort_order: 0,
+  });
+  if (e2) return fail(e2);
+  refresh(eventId ? `/evenements/${eventId}` : null);
+  return { redirect: `/factures/${data.id}` };
+}

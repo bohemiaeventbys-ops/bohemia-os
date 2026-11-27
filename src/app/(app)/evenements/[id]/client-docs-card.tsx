@@ -52,7 +52,7 @@ export async function ClientDocsCard({ eventId, clientId, s }: { eventId: string
           <div className="space-y-2 border-t border-line pt-4">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 font-semibold"><Receipt className="h-4 w-4 text-ochre-700" /> Devis & factures</span>
-              <Link href={`/devis/nouveau?evenement=${eventId}`} className={buttonClass("primary", "sm")}><Plus className="h-3.5 w-3.5" /> Devis</Link>
+              <span className="flex gap-2"><Link href={`/devis/nouveau?evenement=${eventId}`} className={buttonClass("primary", "sm")}><Plus className="h-3.5 w-3.5" /> Devis</Link><Link href={`/factures/nouvelle?evenement=${eventId}`} className={buttonClass("secondary", "sm")}><Plus className="h-3.5 w-3.5" /> Facture</Link></span>
             </div>
             {quotes.length === 0 && invoices.length === 0 && <p className="text-ink-500">Pas encore de devis.</p>}
             {quotes.map((q) => (

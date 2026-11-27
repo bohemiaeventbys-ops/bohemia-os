@@ -42,7 +42,7 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
   return (
     <>
       <PageHeader title="Devis & factures" subtitle="Confidentiel : visible par la Direction et la commerciale uniquement."
-        actions={<ButtonLink href="/devis/nouveau" size="lg"><Plus className="h-5 w-5" /> Nouveau devis</ButtonLink>} />
+        actions={<><ButtonLink href="/devis/nouveau" size="lg"><Plus className="h-5 w-5" /> Nouveau devis</ButtonLink><ButtonLink href="/factures/nouvelle" size="lg" variant="secondary"><Plus className="h-5 w-5" /> Nouvelle facture</ButtonLink></>} />
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <Stat label="Devis en attente de réponse" value={pending.length} tone="mist" icon={<FileText />} />
         <Stat label="Signé ce mois-ci" value={formatMAD(signed)} tone="sage" />
