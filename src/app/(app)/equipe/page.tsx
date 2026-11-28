@@ -86,6 +86,6 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
 function Chip({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
   return (
     <Link href={href} className={cn("inline-flex items-center rounded-full border px-3 py-1 text-xs transition",
-      active ? "border-ink bg-ink text-ivory" : "border-line bg-white text-ink-500 hover:border-taupe-300")}>{children}</Link>
+      active ? "border-ink bg-ink text-ivory" : "border-line bg-paper text-ink-500 hover:border-taupe-300")}>{children}</Link>
   );
 }

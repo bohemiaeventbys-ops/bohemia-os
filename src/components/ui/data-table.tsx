@@ -97,10 +97,10 @@ export function DataTable({ columns, rows, empty = "Aucune ligne.", exportName }
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher dans le tableau…" className="field h-11 pl-9" />
         </div>
-        <button type="button" onClick={() => setShowFilters((v) => !v)} className={`h-11 rounded-xl px-4 text-sm font-semibold ring-1 ${showFilters || active ? "bg-ink text-ivory ring-ink" : "bg-white ring-line"}`}>
+        <button type="button" onClick={() => setShowFilters((v) => !v)} className={`h-11 rounded-xl px-4 text-sm font-semibold ring-1 ${showFilters || active ? "bg-ink text-ivory ring-ink" : "bg-paper ring-line"}`}>
           Filtres{active ? ` (${active})` : ""}
         </button>
-        {exportName && <button type="button" onClick={exportCsv} className="flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold ring-1 ring-line hover:bg-sand-50"><Download className="h-4 w-4" /> Excel</button>}
+        {exportName && <button type="button" onClick={exportCsv} className="flex h-11 items-center gap-2 rounded-xl bg-paper px-4 text-sm font-semibold ring-1 ring-line hover:bg-sand-50"><Download className="h-4 w-4" /> Excel</button>}
       </div>
       {showFilters && (
         <div className="grid gap-2 border-b border-line bg-sand-50 p-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -149,8 +149,8 @@ export function DataTable({ columns, rows, empty = "Aucune ligne.", exportName }
                 })}
                 <td className="px-3 py-1.5 text-right">
                   {r.view && (r.viewExternal
-                    ? <a href={r.view} target="_blank" rel="noreferrer" className="inline-flex rounded-lg p-2 text-ink-400 hover:bg-white hover:text-rose-700" aria-label="Voir le document"><Eye className="h-5 w-5" /></a>
-                    : <Link href={r.view} className="inline-flex rounded-lg p-2 text-ink-400 hover:bg-white hover:text-rose-700" aria-label="Voir"><Eye className="h-5 w-5" /></Link>)}
+                    ? <a href={r.view} target="_blank" rel="noreferrer" className="inline-flex rounded-lg p-2 text-ink-400 hover:bg-paper hover:text-rose-700" aria-label="Voir le document"><Eye className="h-5 w-5" /></a>
+                    : <Link href={r.view} className="inline-flex rounded-lg p-2 text-ink-400 hover:bg-paper hover:text-rose-700" aria-label="Voir"><Eye className="h-5 w-5" /></Link>)}
                 </td>
               </tr>
             ))}

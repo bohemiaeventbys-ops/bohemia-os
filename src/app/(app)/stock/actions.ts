@@ -32,6 +32,9 @@ function itemPayload(fd: FormData) {
     color: str(fd, "color"),
     notes: str(fd, "notes"),
     min_qty: Math.max(0, int(fd, "min_qty") || 0),
+    // champs ajoutés par la mise à jour du 28 nov. : envoyés seulement s'ils sont remplis
+    ...(str(fd, "material") ? { material: str(fd, "material") } : {}),
+    ...(str(fd, "shape") ? { shape: str(fd, "shape") } : {}),
   };
 }
 
@@ -222,11 +225,11 @@ export async function returnTool(_: ActionResult, fd: FormData): Promise<ActionR
 }
 
 /** Réserve plusieurs articles d'un coup (tout ou rien, disponibilité vérifiée au moment de confirmer). */
-export async function reserveMany(eventId: string, lines: { item_id: string; qty: number; finish?: string; zone?: string; note?: string; ref_photo_path?: string | null }[]): Promise<{ ok: true; n: number } | { ok: false; error: string }> {
+export async function reserveMany(eventId: string, lines: { item_id: string; qty: number; finish?: string; color?: string; vinyl?: string; zone?: string; short?: boolean; note?: string; ref_photo_path?: string | null }[]): Promise<{ ok: true; n: number } | { ok: false; error: string }> {
   if (!/^[0-9a-f-]{36}$/i.test(eventId) || !Array.isArray(lines) || !lines.length || lines.length > 200) return { ok: false, error: "Liste vide." };
   const clean = lines.map((l) => ({
     item_id: String(l.item_id), qty: Math.max(1, Math.floor(Number(l.qty) || 0)),
-    finish: (l.finish ?? "").slice(0, 200), zone: (l.zone ?? "").slice(0, 200), note: (l.note ?? "").slice(0, 500),
+    finish: (l.finish ?? "").slice(0, 200), color: (l.color ?? "").slice(0, 120), vinyl: (l.vinyl ?? "").slice(0, 300), zone: (l.zone ?? "").slice(0, 200), short: !!l.short, note: (l.note ?? "").slice(0, 500),
     ref_photo_path: l.ref_photo_path && l.ref_photo_path.startsWith(`events/${eventId}/`) ? l.ref_photo_path : null,
   }));
   const supabase = await createClient();
@@ -251,7 +254,7 @@ export async function saveLineDetails(_: ActionResult, fd: FormData): Promise<Ac
     if (up.error) return { error: up.error };
     photo = up.path;
   }
-  const { error } = await supabase.rpc("stock_line_details", { p_line: line, p_finish: str(fd, "finish") ?? "", p_zone: str(fd, "zone") ?? "", p_ref_photo: photo });
+  const { error } = await supabase.rpc("stock_line_details", { p_line: line, p_finish: str(fd, "finish") ?? "", p_zone: str(fd, "zone") ?? "", p_ref_photo: photo, p_color: str(fd, "color") ?? "", p_vinyl: str(fd, "vinyl") ?? "" });
   if (error) return fail(error);
   refresh(undefined, eventId ?? undefined);
   return { ok: "Consignes enregistrées." };

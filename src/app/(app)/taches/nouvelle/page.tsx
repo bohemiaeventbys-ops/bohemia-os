@@ -1,6 +1,6 @@
 import { Card, CardBody } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { ActionForm, SubmitButton } from "@/components/ui/action-form";
+import { ActionForm, FormReset, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input } from "@/components/ui/field";
 import { requirePerm } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -32,6 +32,7 @@ export default async function NewTask({ searchParams }: { searchParams: Promise<
               defaults={{ assignee_id: sp.responsable, planned_date: sp.date, event_id: sp.evenement }} />
             <Field label="Fichiers joints" className="mt-6"><Input type="file" name="files" multiple /></Field>
             <div className="mt-6 flex justify-end gap-2">
+              <FormReset mode="new" />
               <SubmitButton variant="secondary" name="another" value="1">Créer et en saisir une autre</SubmitButton>
               <SubmitButton>Créer la tâche</SubmitButton>
             </div>

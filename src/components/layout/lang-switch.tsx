@@ -24,7 +24,7 @@ export function LangSwitch({ lang, compact }: { lang: Lang; compact?: boolean })
     </button>
   );
   return (
-    <div dir="ltr" className={cn("inline-flex items-center gap-0.5 rounded-xl bg-white p-1 ring-1 ring-line", pending && "opacity-60")}>
+    <div dir="ltr" className={cn("inline-flex items-center gap-0.5 rounded-xl bg-paper p-1 ring-1 ring-line", pending && "opacity-60")}>
       {btn("fr", compact ? "FR" : "Français")}
       {btn("ar", "العربية")}
     </div>

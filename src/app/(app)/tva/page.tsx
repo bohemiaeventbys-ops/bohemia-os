@@ -60,7 +60,7 @@ export default async function VatPage({ searchParams }: { searchParams: Promise<
     <>
       <PageHeader title="TVA" subtitle={`TVA collectée sur nos factures et TVA payée aux fournisseurs : ${label}. À vérifier avec le comptable.`} />
       <div className="mb-4 flex flex-wrap gap-2">
-        {periods.map((x) => <Link key={x.v} href={`/tva?periode=${x.v}`} className={`rounded-full px-3.5 py-1.5 text-sm ring-1 ${x.v === p ? "bg-ink text-ivory ring-ink" : "bg-white ring-line"}`}>{x.l}</Link>)}
+        {periods.map((x) => <Link key={x.v} href={`/tva?periode=${x.v}`} className={`rounded-full px-3.5 py-1.5 text-sm ring-1 ${x.v === p ? "bg-ink text-ivory ring-ink" : "bg-paper ring-line"}`}>{x.l}</Link>)}
       </div>
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <Stat label="TVA collectée (ventes)" value={formatMAD(collected)} tone="mist" />

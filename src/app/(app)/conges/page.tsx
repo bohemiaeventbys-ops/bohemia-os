@@ -84,7 +84,7 @@ export default async function CongesPage({ searchParams }: { searchParams: Promi
                   <legend className="label">Type de demande</legend>
                   <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
                     {Object.entries(LEAVE_TYPE).map(([k, label], i) => (
-                      <label key={k} className={cn("flex cursor-pointer items-center gap-3 rounded-xl border-2 border-line bg-white p-3 transition hover:border-line-strong",
+                      <label key={k} className={cn("flex cursor-pointer items-center gap-3 rounded-xl border-2 border-line bg-paper p-3 transition hover:border-line-strong",
                         "has-[:checked]:border-ink has-[:checked]:bg-sand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nude-200")}>
                         <input type="radio" name="leave_type" value={k} defaultChecked={i === 0} className="sr-only" />
                         <span className={cn("tile h-10 w-10 [&_svg]:h-5 [&_svg]:w-5", toneTile[LEAVE_TONE[k]])}>{ICONS[k]}</span>

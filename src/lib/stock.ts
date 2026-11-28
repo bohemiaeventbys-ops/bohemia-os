@@ -9,13 +9,14 @@ export interface StockItem {
   id: string; name: string; category_id: string | null; themes: string[]; unit: string;
   qty_good: number; qty_repair: number; qty_broken: number; min_qty: number; location: string | null; dimensions: string | null;
   color: string | null; photo_path: string | null; notes: string | null; is_active: boolean; created_at: string; updated_at: string;
-  code?: string | null; name_ar?: string | null;
+  code?: string | null; name_ar?: string | null; shape?: string | null; material?: string | null;
 }
 export interface EventItem {
   id: string; event_id: string; item_id: string; qty: number; note: string | null; status: "reserve" | "prepare" | "charge" | "retourne";
   prepared_at: string | null; loaded_at: string | null; loaded_photo_path: string | null; loaded_by: string | null;
   returned_at: string | null; qty_returned_good: number | null; qty_returned_repair: number | null; qty_returned_broken: number | null;
   qty_missing: number | null; return_note: string | null; return_photo_path: string | null; finish?: string | null; zone?: string | null; ref_photo_path?: string | null;
+  color?: string | null; vinyl?: string | null; qty_short?: number;
 }
 export interface StockMovement { id: string; item_id: string; event_id: string | null; kind: string; qty: number; detail: string | null; photo_path: string | null; by_employee: string | null; created_at: string }
 

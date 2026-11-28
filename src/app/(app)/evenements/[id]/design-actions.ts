@@ -33,18 +33,35 @@ export async function registerDesign(eventId: string, path: string, previewPath:
   return { ok: true };
 }
 
-/** Valide le design : il devient la référence pour l'installation (l'ancienne référence est remplacée). */
-export async function approveDesign(eventId: string, proofId: string): Promise<R> {
+/** « Validé par l'infographiste » (nom et date enregistrés par la base). */
+export async function graphicOk(eventId: string, proofId: string, ok = true): Promise<R> {
   if (!UUID.test(eventId) || !UUID.test(proofId)) return { ok: false, error: "Invalide." };
   if (!(await allowed())) return { ok: false, error: "Réservé au graphisme et à la direction." };
   const supabase = await createClient();
-  const { data: p } = await supabase.from("design_proofs").select("title, status").eq("id", proofId).eq("event_id", eventId).maybeSingle();
+  const { data: p } = await supabase.from("design_proofs").select("id").eq("id", proofId).eq("event_id", eventId).maybeSingle();
   if (!p) return { ok: false, error: "Design introuvable." };
+  const { error } = await supabase.rpc("proof_graphic_ok", { p_proof: proofId, p_ok: ok });
+  if (error) return { ok: false, error: error.message };
+  done(eventId);
+  return { ok: true };
+}
+
+/** « Approuvé par la cliente » : date + preuve d'accord facultative (capture WhatsApp, photo, PDF). Les anciennes versions sont gardées. */
+export async function clientOk(eventId: string, proofId: string, proofPath: string | null): Promise<R> {
+  if (!UUID.test(eventId) || !UUID.test(proofId) || (proofPath && !okPath(eventId, proofPath))) return { ok: false, error: "Invalide." };
+  if (!(await allowed())) return { ok: false, error: "Réservé au graphisme et à la direction." };
+  const supabase = await createClient();
+  const { data: p } = await supabase.from("design_proofs").select("status").eq("id", proofId).eq("event_id", eventId).maybeSingle();
+  if (!p) return { ok: false, error: "Design introuvable." };
+  if (p.status === "a_modifier") return { ok: false, error: "Ce design est à modifier : ajoutez une nouvelle version." };
   if (p.status !== "valide") {
     const { error } = await supabase.rpc("proof_decide", { p_proof: proofId, p_ok: true, p_comment: null });
     if (error) return { ok: false, error: error.message };
   }
-  await supabase.from("design_proofs").update({ status: "annule" }).eq("event_id", eventId).ilike("title", p.title).eq("status", "valide").neq("id", proofId);
+  if (proofPath) {
+    const { error } = await supabase.from("design_proofs").update({ client_proof_path: proofPath }).eq("id", proofId);
+    if (error) return { ok: false, error: error.message };
+  }
   done(eventId);
   return { ok: true };
 }

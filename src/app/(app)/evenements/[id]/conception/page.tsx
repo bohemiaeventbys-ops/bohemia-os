@@ -58,7 +58,7 @@ export default async function ConceptionPage({ params }: { params: Promise<{ id:
                   <legend className="label">Après validation, il faudra :</legend>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(PRODUCTION_STEPS).map(([k, v]) => (
-                      <label key={k} className="cursor-pointer rounded-full bg-white px-3.5 py-2 text-sm ring-1 ring-line has-[:checked]:bg-ink has-[:checked]:text-ivory has-[:checked]:ring-ink">
+                      <label key={k} className="cursor-pointer rounded-full bg-paper px-3.5 py-2 text-sm ring-1 ring-line has-[:checked]:bg-ink has-[:checked]:text-ivory has-[:checked]:ring-ink">
                         <input type="checkbox" name="steps" value={k} defaultChecked={k === "impression" || k === "pose"} className="sr-only" />{v}
                       </label>
                     ))}

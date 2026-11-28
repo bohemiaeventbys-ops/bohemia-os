@@ -46,7 +46,7 @@ export function PhotoInput({ name = "photo", label = "Prendre une photo", requir
           <button type="button" onClick={clear} className="absolute -right-2 -top-2 rounded-full bg-ink p-1 text-ivory" aria-label="Retirer la photo"><X className="h-3.5 w-3.5" /></button>
         </span>
       ) : null}
-      <label className="inline-flex h-12 cursor-pointer items-center gap-2 rounded-xl border-2 border-dashed border-line-strong bg-white px-4 text-sm font-semibold text-ink-600 transition hover:border-taupe-400 hover:bg-sand-50">
+      <label className="inline-flex h-12 cursor-pointer items-center gap-2 rounded-xl border-2 border-dashed border-line-strong bg-paper px-4 text-sm font-semibold text-ink-600 transition hover:border-taupe-400 hover:bg-sand-50">
         <Camera className="h-5 w-5 text-teal-600" />
         {busy ? "Préparation…" : url ? "Changer la photo" : label}
         <input ref={ref} type="file" name={name} accept="image/*" capture="environment" required={required && !url} onChange={onChange} className="sr-only" />

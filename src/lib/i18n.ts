@@ -47,7 +47,7 @@ const FR = {
   "t.missingN": "Il manque", "t.of": "sur", "t.event": "Événement", "t.done": "Fait", "t.seeAll": "Tout voir", "t.sheet": "Voir la fiche de l'événement",
   "login.title": "Connexion", "login.subtitle": "Accédez à votre espace de travail.", "login.email": "Email", "login.password": "Mot de passe",
   "login.submit": "Se connecter", "login.kiosk": "Le pointage se fait uniquement sur le poste kiosque de l'entreprise.",
-  "c.save": "Enregistrer", "c.missing": "Il manque", "c.close": "Fermer",
+  "c.back": "Retour", "c.save": "Enregistrer", "c.missing": "Il manque", "c.close": "Fermer",
 } as const;
 
 export type Key = keyof typeof FR;
@@ -85,7 +85,7 @@ const AR: Record<Key, string> = {
   "t.missingN": "ناقص", "t.of": "من", "t.event": "الحفلة", "t.done": "تم", "t.seeAll": "شوف كلشي", "t.sheet": "شوف ورقة الحفلة",
   "login.title": "الدخول", "login.subtitle": "دخل لفضاء الخدمة ديالك.", "login.email": "البريد الإلكتروني (Email)", "login.password": "كلمة السر",
   "login.submit": "دخول", "login.kiosk": "تسجيل الحضور كيتدار غير فالحاسوب ديال الشركة.",
-  "c.save": "سجل", "c.missing": "ناقص", "c.close": "سد",
+  "c.back": "رجوع", "c.save": "سجل", "c.missing": "ناقص", "c.close": "سد",
 };
 
 export const hasKey = (k: string): k is Key => k in FR;

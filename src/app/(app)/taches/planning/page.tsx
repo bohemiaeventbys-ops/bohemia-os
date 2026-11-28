@@ -65,7 +65,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
         </>} />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex rounded-lg border border-line bg-white p-0.5">
+        <div className="flex rounded-lg border border-line bg-paper p-0.5">
           <Link href={qs({ par: "employe" })} className={cn("rounded-md px-3 py-1.5 text-sm", par === "employe" ? "bg-ink text-ivory" : "text-ink-500")}>Par employé</Link>
           <Link href={qs({ par: "departement" })} className={cn("rounded-md px-3 py-1.5 text-sm", par === "departement" ? "bg-ink text-ivory" : "text-ink-500")}>Par département</Link>
         </div>
@@ -105,7 +105,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
                       <div className="space-y-1">
                         {cell.map((t) => (
                           <Link key={t.id} href={`/taches/${t.id}`}
-                            className={cn("block rounded-md border border-line border-l-[3px] bg-white px-2 py-1.5 text-xs shadow-card transition hover:border-taupe-300", toneBorder[TASK_STATUS[t.status].tone], isOverdue(t) && "bg-clay-100/50")}>
+                            className={cn("block rounded-md border border-line border-l-[3px] bg-paper px-2 py-1.5 text-xs shadow-card transition hover:border-taupe-300", toneBorder[TASK_STATUS[t.status].tone], isOverdue(t) && "bg-clay-100/50")}>
                             <p className="line-clamp-2 font-medium leading-snug text-ink">{t.title}</p>
                             <p className="mt-0.5 text-[10px] text-ink-400">{t.planned_time ? hhmm(t.planned_time) + " · " : ""}{TASK_STATUS[t.status].label}</p>
                           </Link>

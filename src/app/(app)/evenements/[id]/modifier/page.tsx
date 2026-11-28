@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { ActionForm, SubmitButton } from "@/components/ui/action-form";
+import { ActionForm, FormReset, SubmitButton } from "@/components/ui/action-form";
 import { requirePerm } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { loadEmployees } from "@/lib/queries";
@@ -24,7 +24,7 @@ export default async function EditEvent({ params }: { params: Promise<{ id: stri
         <ActionForm action={updateEvent}>
           <input type="hidden" name="id" value={id} />
           <EventFields e={e} employees={employees} clients={clients ?? []} />
-          <div className="mt-6 flex justify-end"><SubmitButton>Enregistrer</SubmitButton></div>
+          <div className="mt-6 flex flex-wrap justify-end gap-2"><FormReset mode="edit" /><SubmitButton>Enregistrer</SubmitButton></div>
         </ActionForm>
       </CardBody></Card>
     </>

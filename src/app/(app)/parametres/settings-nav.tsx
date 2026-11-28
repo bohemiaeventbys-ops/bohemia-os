@@ -16,7 +16,7 @@ export function SettingsNav({ isAdmin, canSettings, canAudit }: { isAdmin: boole
     canAudit && { href: "/parametres/journal", label: "Journal des actions" },
   ].filter(Boolean) as { href: string; label: string }[];
   return (
-    <div className="mb-6 flex flex-wrap gap-1 rounded-xl border border-line bg-white p-1 w-fit">
+    <div className="mb-6 flex flex-wrap gap-1 rounded-xl border border-line bg-paper p-1 w-fit">
       {items.map((i) => (
         <Link key={i.href} href={i.href} className={cn("rounded-lg px-3.5 py-1.5 text-sm transition", p === i.href ? "bg-ink text-ivory" : "text-ink-500 hover:bg-sand-100")}>{i.label}</Link>
       ))}

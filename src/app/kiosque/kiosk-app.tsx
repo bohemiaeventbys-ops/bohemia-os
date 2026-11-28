@@ -124,7 +124,7 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
       {/* Écran 3 : résultat */}
       {result && selected ? (
         <div className="flex flex-1 items-center justify-center p-12">
-          <div className={cn("w-full max-w-xl rounded-3xl border p-12 text-center", result.ok ? "border-sage-500/30 bg-white" : "border-clay-500/30 bg-white")}>
+          <div className={cn("w-full max-w-xl rounded-3xl border p-12 text-center", result.ok ? "border-sage-500/30 bg-paper" : "border-clay-500/30 bg-paper")}>
             {result.ok ? (
               <>
                 <p className="text-sm uppercase tracking-[0.2em] text-taupe-500">{ACTIONS.find((a) => a.kind === result.kind)?.label} enregistrée</p>
@@ -186,7 +186,7 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
                 k === "" ? <span key="blank" /> : (
                   <button key={k}
                     onClick={() => (k === "del" ? setPin((p) => p.slice(0, -1)) : setPin((p) => (p.length < 6 ? p + k : p)))}
-                    className="flex h-16 items-center justify-center rounded-2xl border border-line bg-white font-display text-3xl text-ink [font-variant-numeric:lining-nums] transition active:scale-95 active:bg-sand-100">
+                    className="flex h-16 items-center justify-center rounded-2xl border border-line bg-paper font-display text-3xl text-ink [font-variant-numeric:lining-nums] transition active:scale-95 active:bg-sand-100">
                     {k === "del" ? <Delete className="h-6 w-6 text-ink-400" strokeWidth={1.5} /> : k}
                   </button>
                 ),
@@ -225,7 +225,7 @@ export function KioskApp({ initialEmployees }: { initialEmployees: KioskEmployee
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
             {filtered.map((e) => (
               <button key={e.id} onClick={() => { setSelected(e); setPin(""); }}
-                className="flex flex-col items-center rounded-2xl border border-line bg-white px-4 py-6 text-center transition hover:border-taupe-300 hover:shadow-pop">
+                className="flex flex-col items-center rounded-2xl border border-line bg-paper px-4 py-6 text-center transition hover:border-taupe-300 hover:shadow-pop">
                 <Face e={e} size={64} />
                 <p className="mt-3 font-medium text-ink">{e.first_name} {e.last_name}</p>
                 <p className="mt-0.5 line-clamp-1 text-xs text-ink-400">{e.department ?? "—"}</p>

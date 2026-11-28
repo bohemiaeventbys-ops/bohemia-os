@@ -104,7 +104,7 @@ export function FieldQueue({ lang }: { lang: Lang }) {
     <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-ochre-100 px-4 py-3 text-ochre-700 ring-1 ring-ochre-200" role="status">
       <CloudOff className="h-6 w-6 shrink-0" />
       <p className="min-w-0 flex-1 text-[15px] font-semibold"><span dir="ltr">{n}</span> {t(lang, "p.pendingN")}</p>
-      <button type="button" onClick={retry} disabled={busy} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold ring-1 ring-ochre-200">
+      <button type="button" onClick={retry} disabled={busy} className="inline-flex h-11 items-center gap-2 rounded-xl bg-paper px-4 text-sm font-bold ring-1 ring-ochre-200">
         <RefreshCw className={cn("h-4 w-4", busy && "animate-spin")} /> {t(lang, "p.retry")}
       </button>
     </div>
@@ -171,7 +171,7 @@ export function FieldReport({ lang, eventId, kind, label, icon, tone = "ink", ph
       ))}
 
       {open && (
-        <div className="space-y-3 rounded-2xl bg-white p-4 ring-2 ring-line">
+        <div className="space-y-3 rounded-2xl bg-paper p-4 ring-2 ring-line">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[16px] font-bold">{label}</p>
             <button type="button" onClick={() => { reset(); setOpen(false); setState("idle"); }} className="rounded-xl p-2 text-ink-400 hover:bg-sand-100" aria-label={tr("c.close")}><X className="h-5 w-5" /></button>
@@ -238,8 +238,8 @@ export function MarkButton({ lang, eventId, what, done, labelOn, labelOff, kind 
     <div>
       <button type="button" onClick={() => toggle(!on)} disabled={pending} aria-pressed={on}
         className={cn("flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 py-3 text-start text-[16px] font-bold ring-2 transition",
-          on ? "bg-sage-100 text-sage-700 ring-sage-300" : "bg-white text-ink-600 ring-line")}>
-        <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg border-2", on ? "border-sage-600 bg-sage-600 text-white" : "border-line-strong bg-white")}>
+          on ? "bg-sage-100 text-sage-700 ring-sage-300" : "bg-paper text-ink-600 ring-line")}>
+        <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg border-2", on ? "border-sage-600 bg-sage-600 text-white" : "border-line-strong bg-paper")}>
           {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : on ? "✓" : ""}
         </span>
         {t(lang, on ? labelOn : labelOff)}
@@ -252,7 +252,7 @@ export function MarkButton({ lang, eventId, what, done, labelOn, labelOff, kind 
       {on ? (
         <div className="flex items-center gap-2">
           <p className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-sage-100 px-4 text-[17px] font-bold text-sage-700"><CheckCircle2 className="h-6 w-6" /> {t(lang, labelOn)}</p>
-          <button type="button" onClick={() => toggle(false)} disabled={pending} className="h-14 rounded-2xl bg-white px-4 text-sm font-semibold text-ink-500 ring-1 ring-line">{t(lang, "t.undo")}</button>
+          <button type="button" onClick={() => toggle(false)} disabled={pending} className="h-14 rounded-2xl bg-paper px-4 text-sm font-semibold text-ink-500 ring-1 ring-line">{t(lang, "t.undo")}</button>
         </div>
       ) : (
         <button type="button" onClick={() => toggle(true)} disabled={pending} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-sage-600 px-4 text-[17px] font-bold text-white shadow-card active:scale-[0.98] disabled:opacity-60">

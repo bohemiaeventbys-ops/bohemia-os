@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card, CardBody } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { ActionForm, SubmitButton } from "@/components/ui/action-form";
+import { ActionForm, FormReset, SubmitButton } from "@/components/ui/action-form";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { loadDepartments, loadEmployees } from "@/lib/queries";
@@ -30,7 +30,7 @@ export default async function EditTask({ params }: { params: Promise<{ id: strin
           <ActionForm action={updateTask}>
             <input type="hidden" name="id" value={id} />
             <TaskFields t={t} employees={employees} departments={departments} events={events ?? []} collaborators={(collab ?? []).map((c) => c.employee_id)} />
-            <div className="mt-6 flex justify-end"><SubmitButton>Enregistrer</SubmitButton></div>
+            <div className="mt-6 flex flex-wrap justify-end gap-2"><FormReset mode="edit" /><SubmitButton>Enregistrer</SubmitButton></div>
           </ActionForm>
         </CardBody>
       </Card>

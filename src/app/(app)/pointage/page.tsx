@@ -157,7 +157,7 @@ async function History({ sp, employees, team }: { sp: SP; employees: Employee[];
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex rounded-lg border border-line bg-white p-0.5">
+        <div className="flex rounded-lg border border-line bg-paper p-0.5">
           {(["jour", "semaine", "mois"] as const).map((p) => (
             <Link key={p} href={base({ periode: p })} className={`rounded-md px-3 py-1.5 text-sm capitalize ${p === periode ? "bg-ink text-ivory" : "text-ink-500 hover:bg-sand-100"}`}>{p}</Link>
           ))}

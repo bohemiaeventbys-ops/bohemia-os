@@ -1,9 +1,9 @@
-import { ActionForm, SubmitButton } from "@/components/ui/action-form";
+import { ActionForm, FormReset, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { SUPPLIER_CATEGORIES, SUPPLIER_KIND, type Supplier } from "@/lib/suppliers";
 import { saveSupplier } from "./actions";
 
-const chip = "cursor-pointer rounded-full bg-white px-3.5 py-2 text-sm ring-1 ring-line has-[:checked]:bg-ink has-[:checked]:text-ivory has-[:checked]:ring-ink";
+const chip = "cursor-pointer rounded-full bg-paper px-3.5 py-2 text-sm ring-1 ring-line has-[:checked]:bg-ink has-[:checked]:text-ivory has-[:checked]:ring-ink";
 
 export function SupplierForm({ s }: { s?: Supplier }) {
   const extra = (s?.categories ?? []).filter((c) => !SUPPLIER_CATEGORIES.includes(c));
@@ -14,7 +14,7 @@ export function SupplierForm({ s }: { s?: Supplier }) {
         <legend className="label">C&apos;est un…</legend>
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(SUPPLIER_KIND).map(([k, v]) => (
-            <label key={k} className="cursor-pointer rounded-xl bg-white px-3 py-3 text-center text-sm font-semibold ring-1 ring-line has-[:checked]:bg-rose-500 has-[:checked]:text-white has-[:checked]:ring-rose-500">
+            <label key={k} className="cursor-pointer rounded-xl bg-paper px-3 py-3 text-center text-sm font-semibold ring-1 ring-line has-[:checked]:bg-rose-500 has-[:checked]:text-white has-[:checked]:ring-rose-500">
               <input type="radio" name="kind" value={k} defaultChecked={(s?.kind ?? "fournisseur") === k} className="sr-only" />{v.label}
             </label>
           ))}
@@ -42,7 +42,7 @@ export function SupplierForm({ s }: { s?: Supplier }) {
         <legend className="label">Votre avis</legend>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map((n) => (
-            <label key={n} className="cursor-pointer rounded-xl bg-white px-4 py-2 text-lg ring-1 ring-line has-[:checked]:bg-ochre-400 has-[:checked]:text-white has-[:checked]:ring-ochre-400">
+            <label key={n} className="cursor-pointer rounded-xl bg-paper px-4 py-2 text-lg ring-1 ring-line has-[:checked]:bg-ochre-400 has-[:checked]:text-white has-[:checked]:ring-ochre-400">
               <input type="radio" name="rating" value={n} defaultChecked={s?.rating === n} className="sr-only" />{"★".repeat(n)}
             </label>
           ))}
@@ -50,7 +50,7 @@ export function SupplierForm({ s }: { s?: Supplier }) {
       </fieldset>
       <Field label="Notes (tarifs, délais, conditions…)"><Textarea name="notes" defaultValue={s?.notes ?? ""} /></Field>
       {s && <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="archived" defaultChecked={!s.is_active} className="h-5 w-5 accent-ink" /> Ne plus travailler avec lui (archiver)</label>}
-      <SubmitButton size="lg">{s ? "Enregistrer" : "Ajouter"}</SubmitButton>
+      <div className="flex flex-wrap gap-2"><SubmitButton size="lg">{s ? "Enregistrer" : "Ajouter"}</SubmitButton><FormReset mode={s ? "edit" : "new"} /></div>
     </ActionForm>
   );
 }

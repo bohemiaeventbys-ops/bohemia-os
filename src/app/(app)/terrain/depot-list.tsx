@@ -35,7 +35,7 @@ export function DepotList({ lang, groups, canMove }: { lang: Lang; groups: Depot
       {shown.map((g) => {
         const loaded = g.lines.filter((l) => l.status === "charge" || l.status === "retourne").length;
         return (
-          <section key={g.id} className="rounded-3xl bg-white p-4 shadow-card ring-1 ring-line">
+          <section key={g.id} className="rounded-3xl bg-paper p-4 shadow-card ring-1 ring-line">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-bold uppercase tracking-wide text-rose-600">{g.day}</p>
@@ -59,7 +59,7 @@ export function DepotList({ lang, groups, canMove }: { lang: Lang; groups: Depot
                     <div className="flex gap-3">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {l.photo ? <img src={l.photo} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover ring-1 ring-line" />
-                        : <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-white text-ink-300 ring-1 ring-line"><PackageX className="h-8 w-8" /></span>}
+                        : <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-paper text-ink-300 ring-1 ring-line"><PackageX className="h-8 w-8" /></span>}
                       <div className="min-w-0 flex-1">
                         <p className="text-[17px] font-bold leading-tight" dir="auto">{label}</p>
                         {lang === "ar" && l.nameAr && <p className="text-sm text-ink-500" dir="auto">{l.name}</p>}

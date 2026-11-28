@@ -35,7 +35,7 @@ export default async function ConnexionPage({ searchParams }: { searchParams: Pr
         <SubmitButton className="w-full" size="lg">{t(lang, "login.submit")}</SubmitButton>
       </ActionForm>
       {needsSetup && (
-        <div className="mt-8 rounded-xl border border-line bg-white p-4 text-sm text-ink-500">
+        <div className="mt-8 rounded-xl border border-line bg-paper p-4 text-sm text-ink-500">
           Première utilisation ? <Link href="/installation" className="link font-medium">Créer le compte Direction</Link>
         </div>
       )}

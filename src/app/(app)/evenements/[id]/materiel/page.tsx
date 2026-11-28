@@ -112,7 +112,10 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
                           <div className="min-w-0 flex-1">
                             <p className="text-[15px] font-semibold leading-snug">{i?.name ?? "Article"}</p>
                             <p className="text-xs text-ink-400">{i?.location ? `Rangé : ${i.location}` : c?.name}</p>
+                            {(l.qty_short ?? 0) > 0 && <p className="mt-0.5 inline-block rounded-lg bg-clay-100 px-2 py-0.5 text-xs font-bold text-clay-700">Manquant : {l.qty_short}</p>}
+                            {l.color && <p className="text-xs text-ink-600">Couleur : {l.color}</p>}
                             {l.finish && <p className="mt-0.5 inline-block rounded-lg bg-plum-100 px-2 py-0.5 text-xs font-semibold text-plum-700">Finition : {l.finish}</p>}
+                            {l.vinyl && <p className="text-xs text-ink-600">Vinyle : {l.vinyl}</p>}
                             {l.zone && <p className="text-xs text-ink-500">Zone de pose : {l.zone}</p>}
                             {l.note && <p className="text-xs text-ink-500">« {l.note} »</p>}
                           </div>
@@ -138,10 +141,12 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
 
                         {canMove && l.status !== "retourne" && (
                           <details className="text-sm">
-                            <summary className="cursor-pointer text-ink-500">Consignes : finition, zone de pose, photo de référence</summary>
+                            <summary className="cursor-pointer text-ink-500">Consignes : couleur, finition, vinyle, zone, photo</summary>
                             <ActionForm action={saveLineDetails} className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
                               <input type="hidden" name="line_id" value={l.id} /><input type="hidden" name="event_id" value={id} />
-                              <Input name="finish" defaultValue={l.finish ?? ""} placeholder="Couleur / finition" />
+                              <Input name="color" defaultValue={l.color ?? ""} placeholder="Couleur demandée" />
+                              <Input name="finish" defaultValue={l.finish ?? ""} placeholder="Finition" />
+                              <Input name="vinyl" defaultValue={l.vinyl ?? ""} placeholder="Vinyle à poser" />
                               <Input name="zone" defaultValue={l.zone ?? ""} placeholder="Zone de pose" />
                               <PhotoInput name="ref_photo" label="Photo de référence" />
                               <SubmitButton variant="secondary">Enregistrer</SubmitButton>
@@ -214,7 +219,7 @@ function Qty({ name, label, def, cls }: { name: string; label: string; def: numb
   return (
     <label className={cn("flex flex-col items-center gap-1 rounded-xl border-2 p-2", cls)}>
       <span className="text-xs font-semibold">{label}</span>
-      <input name={name} type="number" min={0} defaultValue={def} inputMode="numeric" className="h-11 w-full rounded-lg border border-line bg-white text-center text-lg font-bold text-ink" />
+      <input name={name} type="number" min={0} defaultValue={def} inputMode="numeric" className="h-11 w-full rounded-lg border border-line bg-paper text-center text-lg font-bold text-ink" />
     </label>
   );
 }

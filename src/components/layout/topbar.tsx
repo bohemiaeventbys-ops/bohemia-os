@@ -16,7 +16,7 @@ export function Topbar({ employee, unread, photoUrl, lang = "fr" }: { employee: 
       <Link href="/" className="font-display text-xl font-semibold tracking-[0.12em] lg:hidden">BOHEMIA</Link>
       <form action="/recherche" className="relative hidden w-full max-w-md md:block">
         <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" strokeWidth={1.5} />
-        <input name="q" placeholder={t(lang, "top.search")} className="field h-11 border-line bg-white/70 ps-9" />
+        <input name="q" placeholder={t(lang, "top.search")} className="field h-11 border-line bg-paper/70 ps-9" />
       </form>
       <p className="hidden text-sm text-ink-400 xl:block">{today}</p>
       <div className="ms-auto flex items-center gap-2 sm:gap-4">

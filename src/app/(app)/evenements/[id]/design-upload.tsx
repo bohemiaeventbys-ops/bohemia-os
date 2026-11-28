@@ -76,10 +76,10 @@ export function DesignUpload({ eventId, kind, className, label }: { eventId: str
 
   return (
     <div className={className}>
-      <label className={cn("flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 py-3 text-[15px] font-bold shadow-card transition active:scale-[0.98]",
-        kind === "design" ? "bg-rose-600 text-white" : "bg-white text-rose-700 ring-2 ring-rose-200", busy && "pointer-events-none opacity-70")}>
+      <label className={cn("flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-paper px-4 py-2.5 text-[15px] font-bold text-ink ring-1 ring-line-strong transition hover:bg-sand-100 active:scale-[0.98]",
+        busy && "pointer-events-none opacity-70")}>
         {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : kind === "design" ? <Upload className="h-5 w-5" /> : <ImagePlus className="h-5 w-5" />}
-        {busy ?? label ?? (kind === "design" ? "Ajouter le design" : "Ajouter des inspirations")}
+        {busy ?? label ?? (kind === "design" ? "Ajouter un fichier" : "Ajouter des photos d'inspiration")}
         <input ref={input} type="file" className="sr-only" multiple={kind === "inspiration"}
           accept={kind === "design" ? "image/*,application/pdf,.pdf" : "image/*"} onChange={(e) => onFiles(e.target.files)} />
       </label>

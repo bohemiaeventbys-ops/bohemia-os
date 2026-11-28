@@ -18,3 +18,7 @@ export const MISSIONS = ["Chargement", "Livraison", "Montage", "Présence sur pl
 export function overlaps(a: { s: number; e: number }, b: { s: number; e: number }) {
   return a.s < b.e && b.s < a.e;
 }
+export const MISSION_AR: Record<string, string> = {
+  Chargement: "التحميل", Livraison: "التوصيل", Montage: "التركيب", "Présence sur place": "الحضور فالبلاصة",
+  Démontage: "التفكيك", "Retour au dépôt": "الرجوع للمخزن", "Impression / atelier": "الطباعة / الورشة",
+};

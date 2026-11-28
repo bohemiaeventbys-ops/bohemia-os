@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -9,11 +8,12 @@ import { STOCK_BUCKET, type StockCategory, type StockItem } from "@/lib/stock";
 import type { EventRow } from "@/lib/types";
 import { StockBasket, type BasketItem } from "./stock-basket";
 
-export const metadata = { title: "Choisir le matériel" };
+export const metadata = { title: "Ajouter depuis le stock" };
 
 /** Catalogue du stock ouvert pour un événement : ses dates sont gardées, la disponibilité est calculée sur son créneau. */
-export default async function ChooseStock({ params }: { params: Promise<{ id: string }> }) {
+export default async function ChooseStock({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ cat?: string }> }) {
   const { id } = await params;
+  const sp = await searchParams;
   const s = await requireSession();
   if (!(s.can("stock.manage") || s.can("stock.move") || s.can("events.manage"))) redirect(`/evenements/${id}`);
   const supabase = await createClient();
@@ -54,6 +54,7 @@ export default async function ChooseStock({ params }: { params: Promise<{ id: st
   const list: BasketItem[] = items.map((i) => ({
     id: i.id, name: i.name, code: i.code ?? null, cat: catName(i.category_id), catRoot: i.category_id ? (catMap.get(i.category_id)?.parent_id ?? i.category_id) : null,
     photo: i.photo_path ? urls.get(i.photo_path) ?? null : null, dims: i.dimensions, place: i.location, color: i.color,
+    shape: i.shape ?? null, material: i.material ?? null, panel: !!(i.material || i.shape) || /panneau|forex|mdf|arche/i.test(`${catName(i.category_id) ?? ""} ${i.name}`),
     good: i.qty_good, repair: i.qty_repair, broken: i.qty_broken,
     avail: Math.max(0, i.qty_good - (taken.get(i.id)?.qty ?? 0)), others: taken.get(i.id)?.who ?? [], mine: already.get(i.id) ?? 0,
   }));
@@ -61,12 +62,12 @@ export default async function ChooseStock({ params }: { params: Promise<{ id: st
 
   return (
     <div className="mx-auto max-w-5xl">
-      <Link href={`/evenements/${id}`} className="link text-sm">← {e.name}</Link>
-      <h1 className="mt-1 font-display text-3xl font-semibold">Choisir le matériel</h1>
+      <p className="text-sm font-semibold text-ink-500">{e.name}</p>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Ajouter depuis le stock</h1>
       <p className="mt-1 text-[15px] text-ink-500">
         Disponibilité calculée du <b className="text-ink">{formatDate(slot.from)}</b> (sortie) au <b className="text-ink">{formatDate(slot.to)}</b> (retour).
       </p>
-      <StockBasket eventId={id} items={list} cats={roots} />
+      <StockBasket eventId={id} items={list} cats={roots} initialCat={sp.cat && catMap.has(sp.cat) ? (catMap.get(sp.cat)?.parent_id ?? sp.cat) : null} />
     </div>
   );
 }

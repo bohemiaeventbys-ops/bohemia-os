@@ -47,3 +47,32 @@ export function SubmitButton({ children, variant = "primary", size = "md", class
     </button>
   );
 }
+
+/**
+ * « Annuler les modifications » (revient à la dernière version enregistrée) ou
+ * « Refaire à zéro » (vide un brouillon). Demande toujours confirmation.
+ */
+export function FormReset({ mode }: { mode: "edit" | "new" }) {
+  const edit = mode === "edit";
+  function onClick(ev: React.MouseEvent<HTMLButtonElement>) {
+    const form = ev.currentTarget.form;
+    if (!form) return;
+    if (!window.confirm(edit ? "Annuler les modifications et revenir à la dernière version enregistrée ?" : "Tout effacer et recommencer ce formulaire ?")) return;
+    if (edit) { form.reset(); return; }
+    for (const el of Array.from(form.elements)) {
+      if (el instanceof HTMLInputElement) {
+        if (["hidden", "submit", "button", "file"].includes(el.type)) continue;
+        if (el.type === "checkbox" || el.type === "radio") el.checked = false; else el.value = "";
+      } else if (el instanceof HTMLTextAreaElement) el.value = "";
+      else if (el instanceof HTMLSelectElement) el.selectedIndex = 0;
+      else continue;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
+  return (
+    <button type="button" onClick={onClick} className={buttonClass("ghost", "md")}>
+      {edit ? "Annuler les modifications" : "Refaire à zéro"}
+    </button>
+  );
+}

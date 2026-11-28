@@ -1,4 +1,4 @@
-import { ActionForm, SubmitButton } from "@/components/ui/action-form";
+import { ActionForm, FormReset, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import type { Client } from "@/lib/clients";
 import { saveClient } from "./actions";
@@ -12,7 +12,7 @@ export function ClientForm({ c, back }: { c?: Client; back?: string }) {
       {back && <input type="hidden" name="back" value={back} />}
       <div className="grid grid-cols-2 gap-2">
         {(["particulier", "entreprise"] as const).map((k) => (
-          <label key={k} className="cursor-pointer rounded-xl bg-white px-3 py-3 text-center text-sm font-semibold ring-1 ring-line has-[:checked]:bg-rose-500 has-[:checked]:text-white has-[:checked]:ring-rose-500">
+          <label key={k} className="cursor-pointer rounded-xl bg-paper px-3 py-3 text-center text-sm font-semibold ring-1 ring-line has-[:checked]:bg-rose-500 has-[:checked]:text-white has-[:checked]:ring-rose-500">
             <input type="radio" name="kind" value={k} defaultChecked={(c?.kind ?? "particulier") === k} className="sr-only" />{k === "particulier" ? "Particulier" : "Entreprise"}
           </label>
         ))}
@@ -31,7 +31,7 @@ export function ClientForm({ c, back }: { c?: Client; back?: string }) {
         <Field label="ICE (entreprise, pour la facture)"><Input name="ice" defaultValue={c?.ice ?? ""} inputMode="numeric" /></Field>
       </div>
       <Field label="Notes (goûts, allergies, budget annoncé…)"><Textarea name="notes" defaultValue={c?.notes ?? ""} /></Field>
-      <SubmitButton size="lg">{c ? "Enregistrer" : "Ajouter le client"}</SubmitButton>
+      <div className="flex flex-wrap gap-2"><SubmitButton size="lg">{c ? "Enregistrer" : "Ajouter le client"}</SubmitButton><FormReset mode={c ? "edit" : "new"} /></div>
     </ActionForm>
   );
 }

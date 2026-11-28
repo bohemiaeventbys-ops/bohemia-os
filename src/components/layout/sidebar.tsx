@@ -19,7 +19,7 @@ function Item({ item, pathname, badge }: { item: NavItem; pathname: string; badg
   return (
     <Link href={item.href}
       className={cn("group flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium transition",
-        active ? "bg-white text-ink shadow-card ring-1 ring-line" : item.phase ? "text-ink-300 hover:text-ink-500" : "text-ink-500 hover:bg-white/70 hover:text-ink")}>
+        active ? "bg-paper text-ink shadow-card ring-1 ring-line" : item.phase ? "text-ink-300 hover:text-ink-500" : "text-ink-500 hover:bg-paper/70 hover:text-ink")}>
       <span className={cn("tile h-8 w-8 transition", item.phase ? "bg-sand-100 text-ink-300" : toneTile[item.tone ?? "neutral"], !active && !item.phase && "opacity-90 group-hover:opacity-100")}>
         <NavIcon name={item.icon} className="h-[17px] w-[17px]" />
       </span>
@@ -79,7 +79,7 @@ export function MobileNav({ main, bottom, unread, moreLabel = "Plus" }: { main: 
             <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-line-strong" />
             <div className="grid grid-cols-3 gap-2">
               {rest.map((i) => (
-                <Link key={i.key} href={i.href} onClick={() => setOpen(false)} className="relative flex flex-col items-center gap-1.5 rounded-2xl bg-white px-2 py-3 text-xs font-semibold text-ink-600 ring-1 ring-line">
+                <Link key={i.key} href={i.href} onClick={() => setOpen(false)} className="relative flex flex-col items-center gap-1.5 rounded-2xl bg-paper px-2 py-3 text-xs font-semibold text-ink-600 ring-1 ring-line">
                   <span className={cn("tile h-11 w-11", toneTile[i.tone ?? "neutral"])}><NavIcon name={i.icon} className="h-6 w-6" /></span>
                   <span className="text-center leading-tight">{i.label}</span>
                   {i.key === "notifications" && unread > 0 && <span className="absolute end-3 top-2 rounded-full bg-clay-500 px-1.5 text-[10px] font-bold text-white">{unread}</span>}
@@ -89,7 +89,7 @@ export function MobileNav({ main, bottom, unread, moreLabel = "Plus" }: { main: 
           </div>
         </div>
       )}
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex print:hidden border-t border-line bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex print:hidden border-t border-line bg-paper/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 backdrop-blur lg:hidden">
         {visible.map((i) => (
           <Link key={i.key} href={i.href} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ink-500">
             {tab(i, isActive(pathname, i.href))}

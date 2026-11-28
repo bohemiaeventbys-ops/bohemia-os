@@ -24,6 +24,7 @@ export interface Payment { id: string; invoice_id: string | null; event_id: stri
 export interface DesignProof {
   id: string; event_id: string; title: string; version: number; file_path: string; note: string | null; status: "a_valider" | "valide" | "a_modifier" | "annule";
   share_token: string; production_steps: string[]; production_due: string | null; client_comment: string | null; decided_at: string | null; created_by: string | null; created_at: string;
+  preview_path?: string | null; graphic_ok_at?: string | null; graphic_ok_by?: string | null; client_proof_path?: string | null;
 }
 export interface Company {
   company_name: string; legal_name: string; address: string | null; phone: string | null; email: string | null; ice: string | null; rc: string | null;

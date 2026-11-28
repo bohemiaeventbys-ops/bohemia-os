@@ -132,7 +132,7 @@ function TemplateForm({ t, departments, employees }: { t?: Template; departments
         <legend className="label">Pour quels événements ? (rien coché = tous)</legend>
         <div className="flex flex-wrap gap-2">
           {Object.entries(EVENT_TYPE).map(([k, v]) => (
-            <label key={k} className="cursor-pointer rounded-full bg-white px-3 py-1.5 text-sm ring-1 ring-line has-[:checked]:bg-rose-500 has-[:checked]:text-white has-[:checked]:ring-rose-500">
+            <label key={k} className="cursor-pointer rounded-full bg-paper px-3 py-1.5 text-sm ring-1 ring-line has-[:checked]:bg-rose-500 has-[:checked]:text-white has-[:checked]:ring-rose-500">
               <input type="checkbox" name="event_types" value={k} defaultChecked={t?.event_types.includes(k)} className="sr-only" />{v}
             </label>
           ))}

@@ -48,9 +48,9 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
         actions={s.can("events.manage") && <ButtonLink href="/evenements/nouveau"><Plus className="h-4 w-4" /> Nouvel événement</ButtonLink>} />
       <Tabs active={vue} items={[{ key: "avenir", label: "À venir", href: `/evenements?vue=avenir${sp.type ? `&type=${sp.type}` : ""}` }, { key: "passes", label: "Passés", href: `/evenements?vue=passes${sp.type ? `&type=${sp.type}` : ""}` }]} />
       <div className="mb-4 flex flex-wrap gap-2 text-xs">
-        <Link href={typeLink()} className={`rounded-full border px-3 py-1 ${!sp.type ? "border-ink bg-ink text-ivory" : "border-line bg-white text-ink-500"}`}>Tous types</Link>
+        <Link href={typeLink()} className={`rounded-full border px-3 py-1 ${!sp.type ? "border-ink bg-ink text-ivory" : "border-line bg-paper text-ink-500"}`}>Tous types</Link>
         {Object.entries(EVENT_TYPE).map(([k, v]) => (
-          <Link key={k} href={typeLink(k)} className={`rounded-full border px-3 py-1 ${sp.type === k ? "border-ink bg-ink text-ivory" : "border-line bg-white text-ink-500"}`}>{v}</Link>
+          <Link key={k} href={typeLink(k)} className={`rounded-full border px-3 py-1 ${sp.type === k ? "border-ink bg-ink text-ivory" : "border-line bg-paper text-ink-500"}`}>{v}</Link>
         ))}
       </div>
       <Card>

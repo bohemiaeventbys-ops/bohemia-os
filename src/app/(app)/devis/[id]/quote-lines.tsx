@@ -30,7 +30,7 @@ export function QuoteLines({ initial, vat, discount, deposit, locked }: {
       <datalist id="sections">{QUOTE_SECTIONS.map((s) => <option key={s} value={s} />)}</datalist>
       <div className="space-y-3">
         {rows.map((r, i) => (
-          <div key={r.key} className="rounded-xl border border-line bg-white p-3">
+          <div key={r.key} className="rounded-xl border border-line bg-paper p-3">
             <div className="grid gap-2 sm:grid-cols-[9rem_1fr]">
               <input name="line_section" list="sections" value={r.section} onChange={(e) => set(i, { section: e.target.value })} disabled={locked} placeholder="Rubrique" className="field h-10 text-sm" />
               <input name="line_label" value={r.label} onChange={(e) => set(i, { label: e.target.value })} disabled={locked} placeholder="Ex. Arche fleurie 2 m (roses blanches, eucalyptus)" className="field h-10 font-medium" />
@@ -52,7 +52,7 @@ export function QuoteLines({ initial, vat, discount, deposit, locked }: {
         <div className="block"><span className="label">TVA</span>
           <input type="hidden" name="vat_rate" value={v.vat} />
           <button type="button" disabled={locked} onClick={() => setV({ ...v, vat: n(v.vat) > 0 ? "0" : "20" })}
-            className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 text-sm font-semibold transition ${n(v.vat) > 0 ? "border-sage-500 bg-sage-50 text-sage-700" : "border-line bg-white text-ink-500"}`}>
+            className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 text-sm font-semibold transition ${n(v.vat) > 0 ? "border-sage-500 bg-sage-50 text-sage-700" : "border-line bg-paper text-ink-500"}`}>
             {n(v.vat) > 0 ? "✓ TVA 20 % ajoutée (TTC)" : "+ Ajouter la TVA 20 %"}
           </button>
         </div>

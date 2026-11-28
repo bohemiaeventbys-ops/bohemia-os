@@ -6,11 +6,11 @@ export type Variant = "primary" | "secondary" | "ghost" | "danger" | "subtle" | 
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-ivory hover:bg-ink-600 shadow-card",
-  secondary: "bg-white text-ink border border-line-strong hover:border-taupe-300 hover:bg-sand-50",
+  primary: "bg-olive-700 text-white hover:bg-olive-800 shadow-card",
+  secondary: "bg-paper text-ink border border-line-strong hover:border-taupe-300 hover:bg-sand-50",
   subtle: "bg-sand-100 text-ink hover:bg-sand-200",
   ghost: "text-ink-500 hover:text-ink hover:bg-sand-100",
-  danger: "bg-white text-clay-700 border border-clay-200 hover:bg-clay-50",
+  danger: "bg-paper text-clay-700 border border-clay-200 hover:bg-clay-50",
   success: "bg-sage-600 text-white hover:bg-sage-700 shadow-card",
   warning: "bg-ochre-500 text-white hover:bg-ochre-600 shadow-card",
 };

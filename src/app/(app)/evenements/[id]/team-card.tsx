@@ -34,7 +34,7 @@ export async function TeamCard({ eventId, eventDate, canEdit, people }: { eventI
 
   return (
     <Card>
-      <CardHeader icon={<Users />} tone="plum" title="Équipe" subtitle={list.length ? `${new Set(list.map((a) => a.employee_id ?? a.external_name)).size} personne(s) · ${list.length} mission(s)` : "Personne pour l'instant"} />
+      <CardHeader icon={<Users />} tone="plum" title="Équipe affectée" subtitle={list.length ? `${new Set(list.map((a) => a.employee_id ?? a.external_name)).size} personne(s) · ${list.length} mission(s)` : "Personne pour l'instant"} />
       {list.length > 0 && (
         <ul className="divide-y divide-line">
           {list.map((a) => {

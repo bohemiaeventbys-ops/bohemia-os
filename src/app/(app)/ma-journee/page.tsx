@@ -68,11 +68,11 @@ export default async function MaJournee({ searchParams }: { searchParams: Promis
           {todayTasks.length + overdue.length === 0 ? "Rien de prévu aujourd'hui pour l'instant." : `Vous avez ${todayTasks.length} tâche(s) aujourd'hui${overdue.length ? ` et ${overdue.length} en retard` : ""}.`}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 text-ink-600 ring-1 ring-line"><Clock className="h-4 w-4 text-teal-600" />{sched ? `Mon horaire : ${sched.start} – ${sched.end}` : "Jour de repos"}</span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-paper/80 px-3.5 py-2 text-ink-600 ring-1 ring-line"><Clock className="h-4 w-4 text-teal-600" />{sched ? `Mon horaire : ${sched.start} – ${sched.end}` : "Jour de repos"}</span>
           {day ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 ring-1 ring-line"><Badge tone={DAY_STATUS[day.status].tone}>{DAY_STATUS[day.status].label}</Badge>
+            <span className="inline-flex items-center gap-2 rounded-full bg-paper/80 px-3.5 py-2 ring-1 ring-line"><Badge tone={DAY_STATUS[day.status].tone}>{DAY_STATUS[day.status].label}</Badge>
               <span className="text-ink-600">Arrivée {toLocalTime(day.first_in)}{day.last_out ? ` · Départ ${toLocalTime(day.last_out)} · ${formatMinutes(day.worked_minutes)}` : ""}</span></span>
-          ) : <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 text-ink-500 ring-1 ring-line">Pas encore pointé : pointez sur l&apos;ordinateur de l&apos;entreprise</span>}
+          ) : <span className="inline-flex items-center gap-2 rounded-full bg-paper/80 px-3.5 py-2 text-ink-500 ring-1 ring-line">Pas encore pointé : pointez sur l&apos;ordinateur de l&apos;entreprise</span>}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import { Card, CardBody } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { ActionForm, SubmitButton } from "@/components/ui/action-form";
+import { ActionForm, FormReset, SubmitButton } from "@/components/ui/action-form";
 import { requirePerm } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { loadEmployees } from "@/lib/queries";
@@ -20,7 +20,7 @@ export default async function NewEvent({ searchParams }: { searchParams: Promise
       <Card className="max-w-5xl"><CardBody className="py-6">
         <ActionForm action={createEvent}>
           <EventFields employees={employees} clients={clients ?? []} clientId={sp.client} />
-          <div className="mt-6 flex justify-end"><SubmitButton>Créer l&apos;événement</SubmitButton></div>
+          <div className="mt-6 flex flex-wrap justify-end gap-2"><FormReset mode="new" /><SubmitButton>Créer l&apos;événement</SubmitButton></div>
         </ActionForm>
       </CardBody></Card>
     </>

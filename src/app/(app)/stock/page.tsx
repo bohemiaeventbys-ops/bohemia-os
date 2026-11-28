@@ -87,10 +87,10 @@ async function Inventory({ sp, all, cats, catMap }: { sp: SP; all: StockItem[]; 
       </form>
 
       <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-        <Link href={link({ cat: undefined })} className={cn("flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium", !sp.cat ? "border-ink bg-ink text-ivory" : "border-line bg-white text-ink-600")}>Tout</Link>
+        <Link href={link({ cat: undefined })} className={cn("flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium", !sp.cat ? "border-ink bg-ink text-ivory" : "border-line bg-paper text-ink-600")}>Tout</Link>
         {cats.map((c) => (
           <Link key={c.id} href={link({ cat: sp.cat === c.id ? undefined : c.id })}
-            className={cn("flex shrink-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3.5 text-sm font-medium", sp.cat === c.id ? "border-ink bg-ink text-ivory" : "border-line bg-white text-ink-600")}>
+            className={cn("flex shrink-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3.5 text-sm font-medium", sp.cat === c.id ? "border-ink bg-ink text-ivory" : "border-line bg-paper text-ink-600")}>
             <span className={cn("tile h-7 w-7 rounded-full", toneTile[c.color])}><NavIcon name={c.icon} className="h-4 w-4" /></span>
             {c.name}<span className={cn("text-xs", sp.cat === c.id ? "text-ivory/70" : "text-ink-300")}>{countByCat.get(c.id) ?? 0}</span>
           </Link>
@@ -122,7 +122,7 @@ async function Inventory({ sp, all, cats, catMap }: { sp: SP; all: StockItem[]; 
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
                     : <span className="flex h-full w-full items-center justify-center"><NavIcon name={c?.icon ?? "box"} className="h-10 w-10 opacity-70" /></span>}
-                  <span className={cn("absolute left-2 top-2 rounded-full px-2.5 py-1 text-sm font-bold tabular-nums shadow-card", isLow(i) ? "bg-clay-500 text-white" : "bg-white/90 text-ink")}>{i.qty_good} <span className="text-xs font-medium opacity-70">{i.unit}{i.qty_good > 1 && i.unit === "pièce" ? "s" : ""}</span></span>
+                  <span className={cn("absolute left-2 top-2 rounded-full px-2.5 py-1 text-sm font-bold tabular-nums shadow-card", isLow(i) ? "bg-clay-500 text-white" : "bg-paper/90 text-ink")}>{i.qty_good} <span className="text-xs font-medium opacity-70">{i.unit}{i.qty_good > 1 && i.unit === "pièce" ? "s" : ""}</span></span>
                 </div>
                 <div className="space-y-1.5 p-3">
                   <p className="line-clamp-2 text-[15px] font-semibold leading-snug">{i.name}</p>

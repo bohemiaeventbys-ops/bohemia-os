@@ -15,7 +15,7 @@ import { formatMAD } from "@/lib/format";
 import { DONE_STATUSES, EVENT_STATUS, EVENT_TYPE } from "@/lib/labels";
 import { sortTasks } from "@/lib/tasks";
 import { eventCalc } from "@/lib/calc";
-import { PROOF_BUCKET, type DesignProof } from "@/lib/clients";
+import { PROOF_BUCKET } from "@/lib/clients";
 import { LINE_STATUS, STOCK_BUCKET, type EventItem, type StockItem } from "@/lib/stock";
 import type { Employee, EventRow, Task } from "@/lib/types";
 import { TaskTable } from "../../taches/task-row";
@@ -25,7 +25,10 @@ import { ClientDocsCard } from "./client-docs-card";
 import { MaterialsCard } from "./materials-card";
 import { TeamCard } from "./team-card";
 import { DesignUpload } from "./design-upload";
-import { ApproveDesign, Inspirations, Zoomable } from "./event-widgets";
+import { DesignValidations, Inspirations, Zoomable } from "./event-widgets";
+import { PrintChoice } from "@/components/print-choice";
+import { designState, isPdf, type Proof } from "@/lib/design";
+import { fullName } from "@/lib/format";
 
 export default async function EventPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ reserve?: string }> }) {
   const { id } = await params;
@@ -51,131 +54,160 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const tasks = sortTasks((taskData ?? []) as Task[]);
   const done = tasks.filter((t) => DONE_STATUSES.includes(t.status)).length;
   const lines = (lineData ?? []) as EventItem[];
-  const proofs = (proofData ?? []) as (DesignProof & { preview_path?: string | null })[];
-  // Design de référence : le dernier validé ; sinon le dernier envoyé (en attente)
-  const reference = proofs.find((p) => p.status === "valide") ?? null;
-  const pending = proofs.find((p) => p.status !== "valide" && (!reference || p.created_at > reference.created_at)) ?? null;
-  const main = reference ?? pending;
+  const proofs = (proofData ?? []) as Proof[];
+  const { reference, pending, main, history, fullyApproved } = designState(proofs);
   const missingItems = new Set((missing ?? []).map((m) => m.item_id as string));
   const { data: itemData } = lines.length ? await supabase.from("stock_items").select("*").in("id", lines.map((l) => l.item_id)) : { data: [] };
   const items = new Map(((itemData ?? []) as StockItem[]).map((i) => [i.id, i]));
   const [proofUrls, inspUrls, stockUrls] = await Promise.all([
-    signedUrls(supabase, PROOF_BUCKET, [main?.file_path, main?.preview_path, pending?.preview_path, pending?.file_path]),
+    signedUrls(supabase, PROOF_BUCKET, [main?.file_path, main?.preview_path, main?.client_proof_path, pending?.preview_path, pending?.file_path, pending?.client_proof_path, ...history.slice(0, 8).flatMap((h) => [h.file_path, h.preview_path])]),
     signedUrls(supabase, PROOF_BUCKET, (inspData ?? []).map((i) => i.file_path as string)),
-    signedUrls(supabase, STOCK_BUCKET, [...items.values()].map((i) => i.photo_path)),
+    signedUrls(supabase, STOCK_BUCKET, [...items.values()].map((i) => i.photo_path).concat(lines.map((l) => l.ref_photo_path ?? null))),
   ]);
+  const staffMap = new Map(people.map((p) => [p.id, p]));
+  const validations = (p: Proof) => ({
+    graphic: p.graphic_ok_at ? { at: p.graphic_ok_at, by: p.graphic_ok_by ? (staffMap.get(p.graphic_ok_by) ? fullName(staffMap.get(p.graphic_ok_by)!) : "Infographiste") : null } : null,
+    client: p.status === "valide" ? { at: p.decided_at, proofUrl: p.client_proof_path ? proofUrls.get(p.client_proof_path) ?? null : null } : null,
+  });
   const calc = showMoney ? await eventCalc(supabase, id, e.client_id ?? null) : null;
   const days = diffDays(e.event_date, todayISO());
   const status = EVENT_STATUS[e.status];
 
-  const proofImg = (p: typeof main) => {
+  const proofImg = (p: Proof | null) => {
     if (!p) return null;
-    const pdf = /\.pdf$/i.test(p.file_path);
+    const pdf = isPdf(p.file_path);
     return { img: pdf ? (p.preview_path ? proofUrls.get(p.preview_path) : null) : proofUrls.get(p.file_path), file: proofUrls.get(p.file_path), pdf };
   };
   const mainImg = proofImg(main);
-  const pendingImg = reference && pending ? proofImg(pending) : null;
+  const pendingImg = pending ? proofImg(pending) : null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      {/* En-tête : une seule fois, l'essentiel */}
-      <header className="card overflow-hidden">
-        <div className="space-y-3 p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <Link href="/evenements" className="text-xs font-semibold uppercase tracking-wider text-ink-400 hover:underline">Événements</Link>
-              <h1 className="font-display text-3xl font-semibold leading-tight sm:text-4xl">{e.name}</h1>
-            </div>
-            <div className="flex items-center gap-2">
+      {/* En-tête : l'essentiel, une seule fois */}
+      <header className="card p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
               <Badge tone={status.tone}>{status.label}</Badge>
               {days >= 0 && days <= 2 && <Badge tone="clay">{days === 0 ? "Aujourd'hui" : `J-${days}`}</Badge>}
-              {canEdit && <Link href={`/evenements/${id}/modifier`} className={buttonClass("ghost", "sm")}><Pencil className="h-4 w-4" /> Modifier</Link>}
+              <span className="text-xs font-semibold text-ink-400">{EVENT_TYPE[e.event_type]}</span>
             </div>
+            <h1 className="text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{e.name}</h1>
           </div>
-          <dl className="grid gap-3 text-[15px] sm:grid-cols-2 lg:grid-cols-5">
-            <Fact label="Client">{e.client_name ?? "—"}</Fact>
-            <Fact label="Date">{formatDayLong(e.event_date)}<span className="block text-xs text-ink-400">{EVENT_TYPE[e.event_type]}</span></Fact>
-            <Fact label="Lieu" className="lg:col-span-2">{e.address ?? "À préciser"}</Fact>
-            <Fact label="Personnes">
-              {canEdit ? (
-                <ActionForm action={saveGuests} className="flex items-center gap-1.5">
-                  <input type="hidden" name="id" value={id} />
-                  <input name="guests" type="number" min={0} inputMode="numeric" defaultValue={e.guests ?? ""} placeholder="À renseigner" className="field h-10 w-28 text-center text-lg font-bold" />
-                  <SubmitButton size="sm" variant="secondary">OK</SubmitButton>
-                </ActionForm>
-              ) : e.guests ? <b className="text-xl">{e.guests}</b> : <span className="font-semibold text-ochre-700">À renseigner</span>}
-            </Fact>
-          </dl>
+          <div className="flex flex-wrap items-center gap-2">
+            {canEdit && <Link href={`/evenements/${id}/modifier`} className={buttonClass("secondary", "md")}><Pencil className="h-4 w-4" /> Modifier</Link>}
+            <PrintChoice eventId={id} />
+          </div>
         </div>
-        {/* Actions principales, selon le rôle */}
-        <div className="grid gap-2 border-t border-line bg-sand-50 p-3 sm:grid-cols-2 lg:grid-cols-4">
-          {canDesign && <DesignUpload eventId={id} kind="design" />}
-          {canDesign && <DesignUpload eventId={id} kind="inspiration" />}
-          {canMove && <Link href={`/evenements/${id}/materiel/choisir`} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-ochre-500 px-4 text-[15px] font-bold text-white shadow-card"><PackagePlus className="h-5 w-5" /> Choisir le matériel</Link>}
-          <Link href={`/evenements/${id}/fiche`} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-ink px-4 text-[15px] font-bold text-ivory shadow-card"><FileText className="h-5 w-5" /> Ouvrir la fiche technique</Link>
-        </div>
+        <dl className="mt-4 grid gap-3 text-[15px] sm:grid-cols-2 lg:grid-cols-4">
+          <Fact label="Client">{e.client_name ?? <Todo />}</Fact>
+          <Fact label="Lieu">{e.address ?? <Todo />}</Fact>
+          <Fact label="Date">{formatDayLong(e.event_date)}</Fact>
+          <Fact label="Personnes">
+            {canEdit ? (
+              <ActionForm action={saveGuests} className="flex items-center gap-1.5">
+                <input type="hidden" name="id" value={id} />
+                <input name="guests" type="number" min={0} inputMode="numeric" defaultValue={e.guests ?? ""} placeholder="À renseigner" className="field h-10 w-28 text-center text-lg font-bold" />
+                <SubmitButton size="sm" variant="secondary">OK</SubmitButton>
+              </ActionForm>
+            ) : e.guests ? <b className="text-xl">{e.guests}</b> : <Todo />}
+          </Fact>
+        </dl>
       </header>
 
       <div className="grid gap-5 xl:grid-cols-3">
         <div className="space-y-5 xl:col-span-2">
-          {/* Design */}
+          {/* Design de l'événement */}
           <Card>
-            <CardHeader icon={<Sparkles />} tone="rose" title="Design" subtitle={reference ? "✓ Validé : c'est la référence pour l'installation" : main ? "En attente de validation" : "Pas encore de design"} />
+            <div id="design" className="scroll-mt-24" />
+            <CardHeader icon={<Sparkles />} tone="rose" title="Design de l'événement"
+              subtitle={fullyApproved ? "✓ Validé deux fois : c'est la référence pour l'installation" : reference ? "Approuvé par la cliente, à valider par l'infographiste" : main ? "En attente des validations" : "Pas encore de design"}
+              action={canDesign ? <DesignUpload eventId={id} kind="design" /> : undefined} />
             {main && mainImg ? (
-              <div className="space-y-3 px-5 pb-5">
-                <div className={`overflow-hidden rounded-2xl ring-2 ${reference ? "ring-sage-400" : "ring-ochre-300"}`}>
+              <div className="space-y-3 p-5">
+                <div className={`overflow-hidden rounded-2xl ring-2 ${fullyApproved ? "ring-sage-400" : "ring-ochre-300"}`}>
                   {mainImg.img ? <Zoomable src={mainImg.img} alt={main.title} href={mainImg.file ?? undefined} />
                     : mainImg.file ? <a href={mainImg.file} target="_blank" rel="noreferrer" className="flex h-40 items-center justify-center gap-2 bg-sand-50 font-bold"><FileText className="h-6 w-6" /> Ouvrir le PDF du design</a> : null}
-                  <p className={`px-4 py-2 text-sm font-bold ${reference ? "bg-sage-100 text-sage-700" : "bg-ochre-100 text-ochre-700"}`}>{reference ? "✓ Design validé" : "⏳ À valider"} · {main.title} v{main.version}{mainImg.pdf ? " · PDF" : ""}</p>
+                  <p className={`px-4 py-2 text-sm font-bold ${fullyApproved ? "bg-sage-100 text-sage-800" : "bg-ochre-100 text-ochre-700"}`}>
+                    {fullyApproved ? "✓ Design approuvé pour l'installation" : "⏳ En attente"} · {main.title} v{main.version}{mainImg.pdf ? " · PDF" : ""}
+                  </p>
                 </div>
-                {!reference && canDesign && <ApproveDesign eventId={id} proofId={main.id} />}
+                <DesignValidations eventId={id} proofId={main.id} canEdit={canDesign} {...validations(main)} />
                 {pending && pendingImg && (
-                  <div className="flex items-center gap-3 rounded-xl bg-ochre-50 p-3 ring-1 ring-ochre-200">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {pendingImg.img && <img src={pendingImg.img} alt="" className="h-16 w-16 rounded-lg object-cover" />}
-                    <p className="flex-1 text-sm"><b>Nouvelle version en attente</b> (v{pending.version}). L&apos;installation garde le design validé jusqu&apos;à sa validation.</p>
-                    {canDesign && <div className="w-56"><ApproveDesign eventId={id} proofId={pending.id} /></div>}
+                  <div className="space-y-3 rounded-2xl bg-ochre-50 p-3 ring-1 ring-ochre-200">
+                    <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {pendingImg.img ? <img src={pendingImg.img} alt="" className="h-20 w-20 rounded-lg object-cover" /> : <span className="grid h-20 w-20 place-items-center rounded-lg bg-paper"><FileText className="h-6 w-6" /></span>}
+                      <p className="flex-1 text-sm"><b>Nouvelle version en attente</b> (v{pending.version}).<br />L&apos;installation garde le design approuvé ci-dessus tant que celle-ci n&apos;a pas ses deux validations.</p>
+                    </div>
+                    <DesignValidations eventId={id} proofId={pending.id} canEdit={canDesign} {...validations(pending)} />
                   </div>
                 )}
               </div>
-            ) : <Empty title="Aucun design pour l'instant.">{canDesign ? "Touchez « Ajouter le design » en haut (image ou PDF)." : "Le graphisme l'ajoutera ici."}</Empty>}
-            {(inspData ?? []).length > 0 && (
-              <div className="border-t border-line px-5 py-4">
-                <p className="mb-2 text-sm font-bold text-ink-600">Inspirations</p>
-                <Inspirations eventId={id} canEdit={canDesign} list={(inspData ?? []).map((i) => ({ id: i.id as string, is_cover: i.is_cover as boolean, url: inspUrls.get(i.file_path as string) ?? null }))} />
+            ) : <Empty title="Aucun design pour l'instant.">{canDesign ? "Touchez « Ajouter un fichier » (image ou PDF)." : "Le graphisme l'ajoutera ici."}</Empty>}
+            <div className="border-t border-line px-5 py-4">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-bold text-ink-600">Photos d&apos;inspiration{(inspData ?? []).length ? ` (${(inspData ?? []).length})` : ""}</p>
+                {canDesign && <DesignUpload eventId={id} kind="inspiration" />}
               </div>
+              {(inspData ?? []).length > 0
+                ? <Inspirations eventId={id} canEdit={canDesign} list={(inspData ?? []).map((i) => ({ id: i.id as string, is_cover: i.is_cover as boolean, url: inspUrls.get(i.file_path as string) ?? null }))} />
+                : <p className="text-sm text-ink-400">Aucune photo pour l&apos;instant.</p>}
+            </div>
+            {history.length > 0 && (
+              <details className="border-t border-line px-5 py-3 text-sm">
+                <summary className="cursor-pointer font-semibold text-ink-500">Versions précédentes ({history.length})</summary>
+                <ul className="mt-2 space-y-1">
+                  {history.map((h) => (
+                    <li key={h.id} className="flex items-center justify-between gap-2">
+                      <a href={proofUrls.get(h.file_path) ?? "#"} target="_blank" rel="noreferrer" className="link">{h.title} v{h.version}</a>
+                      <span className="text-xs text-ink-400">{formatDate(h.created_at)} · {h.status === "valide" ? "approuvée" : h.status === "annule" ? "remplacée" : h.status === "a_modifier" ? "à modifier" : "en attente"}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
             )}
           </Card>
 
-          {/* Matériel */}
+          {/* Mobilier et matériel à prendre */}
           <Card>
             <div id="materiel" className="scroll-mt-24" />
-            <CardHeader icon={<Warehouse />} tone="ochre" title="Matériel du dépôt"
-              subtitle={lines.length ? `${lines.length} article(s) · ${lines.reduce((a, l) => a + l.qty, 0)} pièces` : "Rien de réservé"}
-              action={canMove ? <Link href={`/evenements/${id}/materiel`} className={buttonClass("ghost", "sm")}>Suivi dépôt</Link> : undefined} />
-            {sp.reserve && <p className="mx-5 mb-3 rounded-xl bg-sage-100 px-3 py-2 text-sm font-bold text-sage-700">✓ {sp.reserve} article(s) réservé(s) : le magasinier les voit dans « Terrain ».</p>}
-            {lines.length === 0 ? <Empty title="Aucun matériel réservé.">{canMove ? "Touchez « Choisir le matériel »." : ""}</Empty> : (
+            <CardHeader icon={<Warehouse />} tone="ochre" title="Mobilier et matériel à prendre"
+              subtitle={lines.length ? `${lines.length} article(s) · ${lines.reduce((a, l) => a + l.qty, 0)} pièces réservées` : "Rien de sélectionné"}
+              action={canMove ? <Link href={`/evenements/${id}/materiel/choisir`} className={buttonClass("secondary", "md")}><PackagePlus className="h-5 w-5" /> Ajouter depuis le stock</Link> : undefined} />
+            {sp.reserve && <p className="mx-5 mt-3 rounded-xl bg-sage-100 px-3 py-2 text-sm font-bold text-sage-800">✓ {sp.reserve} article(s) enregistré(s) : le magasinier les voit dans « Terrain ».</p>}
+            {lines.length === 0 ? <Empty title="Aucun article sélectionné.">{canMove ? "Touchez « Ajouter depuis le stock »." : ""}</Empty> : (
               <ul className="divide-y divide-line">
                 {lines.map((l) => {
                   const i = items.get(l.item_id);
                   const ph = i?.photo_path ? stockUrls.get(i.photo_path) : null;
-                  const miss = missingItems.has(l.item_id);
-                  const st = miss ? { label: "Manquant", cls: "bg-clay-100 text-clay-700" } : l.status === "reserve" ? { label: "Réservé", cls: "bg-mist-100 text-mist-700" } : { label: LINE_STATUS[l.status].label, cls: "bg-teal-100 text-teal-700" };
+                  const ref = l.ref_photo_path ? stockUrls.get(l.ref_photo_path) : null;
+                  const short = (l.qty_short ?? 0) > 0;
+                  const miss = short || missingItems.has(l.item_id);
+                  const st = miss ? { label: short ? `Manquant : ${l.qty_short}` : "Manquant", cls: "bg-clay-100 text-clay-700" }
+                    : l.status === "reserve" ? { label: "Réservé", cls: "bg-mist-100 text-mist-700" } : { label: LINE_STATUS[l.status].label, cls: "bg-teal-100 text-teal-700" };
+                  const specs = [i?.shape, i?.dimensions, i?.material].filter(Boolean).join(" · ");
+                  const asks = [l.color && `Couleur : ${l.color}`, l.finish && `Finition : ${l.finish}`, l.vinyl && `Vinyle : ${l.vinyl}`, l.zone && `Zone : ${l.zone}`].filter(Boolean);
                   return (
-                    <li key={l.id} className="flex items-center gap-3 px-5 py-2.5">
+                    <li key={l.id} className="flex items-start gap-3 px-5 py-3">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {ph ? <img src={ph} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" /> : <span className="h-12 w-12 shrink-0 rounded-lg bg-sand-100" />}
+                      {ph ? <img src={ph} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" /> : <span className="h-14 w-14 shrink-0 rounded-lg bg-sand-100" />}
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold leading-tight">{i?.name ?? "Article"}{i?.code && <span className="ms-2 font-mono text-xs text-ink-400">{i.code}</span>}</p>
-                        <p className="text-xs text-ink-500">{[l.finish, l.zone && `Zone : ${l.zone}`].filter(Boolean).join(" · ")}</p>
+                        <p className="font-semibold leading-tight">{i?.name ?? "Article"}{i?.code && <span className="ms-2 font-mono text-xs font-bold text-ink-500">{i.code}</span>}</p>
+                        {specs && <p className="text-xs text-ink-500">{specs}</p>}
+                        {asks.length > 0 && <p className="mt-0.5 text-sm text-ink-600">{asks.join(" · ")}</p>}
+                        <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${st.cls}`}>{miss && <AlertTriangle className="me-1 inline h-3 w-3" />}{st.label}</span>
+                        {short && canMove && <Link href={`/evenements/${id}/materiel/choisir?cat=${i?.category_id ?? ""}`} className="ms-2 text-xs font-semibold text-clay-700 underline">Choisir un autre modèle</Link>}
                       </div>
-                      <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${st.cls}`}>{miss && <AlertTriangle className="me-1 inline h-3 w-3" />}{st.label}</span>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {ref && <img src={ref} alt="Référence" className="h-14 w-14 shrink-0 rounded-lg object-cover ring-2 ring-ochre-300" />}
                       <span className="w-12 shrink-0 text-end text-xl font-bold tabular-nums">×{l.qty}</span>
                     </li>
                   );
                 })}
               </ul>
             )}
+            {canMove && lines.length > 0 && <div className="border-t border-line px-5 py-3"><Link href={`/evenements/${id}/materiel`} className="link text-sm font-semibold">Consignes et suivi au dépôt →</Link></div>}
           </Card>
 
           <TeamCard eventId={id} eventDate={e.event_date} canEdit={canEdit} people={people} />
@@ -248,6 +280,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
 function Fact({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return <div className={className}><dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-400">{label}</dt><dd className="font-semibold">{children}</dd></div>;
+}
+function Todo() {
+  return <span className="font-semibold text-ochre-700">À renseigner</span>;
 }
 function Fold({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (

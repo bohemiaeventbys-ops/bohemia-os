@@ -80,7 +80,7 @@ export default async function TerrainPage({ searchParams }: { searchParams: Prom
         {tabs.map((x) => (
           <Link key={x.v} href={`/terrain?vue=${x.v}`} aria-current={view === x.v ? "page" : undefined}
             className={cn("flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-[15px] font-bold transition",
-              view === x.v ? `${x.tone} text-white shadow-card` : "bg-white text-ink-500 ring-1 ring-line")}>
+              view === x.v ? `${x.tone} text-white shadow-card` : "bg-paper text-ink-500 ring-1 ring-line")}>
             {x.icon} {tr(`t.tab.${x.v}` as Key)}
           </Link>
         ))}
@@ -95,7 +95,7 @@ export default async function TerrainPage({ searchParams }: { searchParams: Prom
 }
 
 function None({ lang }: { lang: Lang }) {
-  return <p className="rounded-2xl bg-white px-5 py-10 text-center text-[17px] font-semibold text-ink-400 ring-1 ring-line">{t(lang, "t.none")}</p>;
+  return <p className="rounded-2xl bg-paper px-5 py-10 text-center text-[17px] font-semibold text-ink-400 ring-1 ring-line">{t(lang, "t.none")}</p>;
 }
 
 function Times({ lang, e, keys }: { lang: Lang; e: Ev; keys: ("load_at" | "delivery_at" | "setup_at" | "start_at" | "teardown_at")[] }) {
@@ -140,7 +140,7 @@ function Place({ lang, e }: { lang: Lang; e: Ev }) {
 }
 
 function SheetLink({ lang, id }: { lang: Lang; id: string }) {
-  return <Link href={`/evenements/${id}/fiche`} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-[15px] font-bold text-ink ring-2 ring-line"><FileText className="h-5 w-5" /> {t(lang, "t.sheet")}</Link>;
+  return <Link href={`/evenements/${id}/fiche`} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-paper px-4 text-[15px] font-bold text-ink ring-2 ring-line"><FileText className="h-5 w-5" /> {t(lang, "t.sheet")}</Link>;
 }
 
 function BigLinks({ lang, e }: { lang: Lang; e: Ev }) {
@@ -176,7 +176,7 @@ async function Chauffeur({ lang, events }: { lang: Lang; events: Ev[] }) {
 
 function Card({ open, summary, children }: { open?: boolean; summary: React.ReactNode; children: React.ReactNode }) {
   return (
-    <details open={open} className="group rounded-3xl bg-white p-4 shadow-card ring-1 ring-line sm:p-5">
+    <details open={open} className="group rounded-3xl bg-paper p-4 shadow-card ring-1 ring-line sm:p-5">
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{summary}</summary>
       <div className="mt-4 space-y-4">{children}</div>
     </details>
@@ -209,16 +209,16 @@ async function Depot({ lang, events, canMove }: { lang: Lang; events: Ev[]; canM
   if (!events.length) return <None lang={lang} />;
   const supabase = await createClient();
   const { data: lines } = await supabase.from("event_items")
-    .select("id, event_id, item_id, qty, note, finish, zone, status, stock_items(name, name_ar, code, location, photo_path)")
+    .select("*, stock_items(name, name_ar, code, location, photo_path)")
     .in("event_id", events.map((e) => e.id));
-  type L = { id: string; event_id: string; item_id: string; qty: number; note: string | null; finish: string | null; zone: string | null; status: string;
+  type L = { id: string; event_id: string; item_id: string; qty: number; qty_short: number | null; note: string | null; finish: string | null; color: string | null; vinyl: string | null; zone: string | null; status: string;
     stock_items: { name: string; name_ar: string | null; code: string | null; location: string | null; photo_path: string | null } | null };
   const all = (lines ?? []) as unknown as L[];
   const urls = await signedUrls(supabase, STOCK_BUCKET, all.map((l) => l.stock_items?.photo_path));
   const groups: DepotGroup[] = events.map((e) => ({
     id: e.id, name: e.name, day: dayLabel(lang, e.event_date), load: e.load_at ? toLocalTime(e.load_at) : null,
     lines: all.filter((l) => l.event_id === e.id).map((l) => ({
-      id: l.id, itemId: l.item_id, qty: l.qty, status: l.status, finish: [l.finish ?? l.note, l.zone && `📍 ${l.zone}`].filter(Boolean).join(" · ") || null,
+      id: l.id, itemId: l.item_id, qty: l.qty, status: l.status, finish: [l.color, l.finish ?? l.note, l.vinyl && `Vinyle : ${l.vinyl}`, l.zone && `📍 ${l.zone}`, (l.qty_short ?? 0) > 0 && `⚠ Manque ${l.qty_short}`].filter(Boolean).join(" · ") || null,
       name: l.stock_items?.name ?? "—", nameAr: l.stock_items?.name_ar ?? null, code: l.stock_items?.code ?? null, place: l.stock_items?.location ?? null,
       photo: l.stock_items?.photo_path ? urls.get(l.stock_items.photo_path) ?? null : null,
     })).sort((a, b) => Number(a.status === "charge") - Number(b.status === "charge") || (a.place ?? "").localeCompare(b.place ?? "")),

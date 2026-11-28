@@ -51,7 +51,7 @@ export async function CompactStock({ sp, all, cats, canManage }: { sp: SP; all: 
 
   return (
     <div className="space-y-3">
-      <form className="grid gap-2 rounded-2xl bg-white p-3 ring-1 ring-line sm:grid-cols-[1fr_auto_auto_1fr_auto]" action="/stock">
+      <form className="grid gap-2 rounded-2xl bg-paper p-3 ring-1 ring-line sm:grid-cols-[1fr_auto_auto_1fr_auto]" action="/stock">
         <input type="hidden" name="vue" value="compact" />
         <Input name="q" defaultValue={sp.q ?? ""} placeholder="Nom, code, emplacement…" className="h-11" />
         <label className="text-xs text-ink-500">Du<Input type="date" name="du" defaultValue={du} className="h-11" /></label>
@@ -64,7 +64,7 @@ export async function CompactStock({ sp, all, cats, canManage }: { sp: SP; all: 
       </form>
       <div className="flex flex-wrap gap-2">
         {[["", "Tout"], ["dispo", "Disponible"], ["reserve", "Réservé"], ["indispo", "Indisponible"]].map(([k, l]) => (
-          <Link key={k} href={qs({ etat: k, page: "1" })} className={cn("h-10 rounded-full px-4 text-sm font-semibold leading-10 ring-1", etat === k ? "bg-ink text-ivory ring-ink" : "bg-white ring-line")}>{l}</Link>
+          <Link key={k} href={qs({ etat: k, page: "1" })} className={cn("h-10 rounded-full px-4 text-sm font-semibold leading-10 ring-1", etat === k ? "bg-ink text-ivory ring-ink" : "bg-paper ring-line")}>{l}</Link>
         ))}
         <span className="ms-auto self-center text-sm text-ink-500">{rows.length} article(s) · période du {formatDate(du)} au {formatDate(au)}</span>
       </div>
@@ -97,9 +97,9 @@ export async function CompactStock({ sp, all, cats, canManage }: { sp: SP; all: 
       </div>
       {pages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          {page > 1 && <Link href={qs({ page: String(page - 1) })} className="rounded-xl bg-white px-4 py-2 font-semibold ring-1 ring-line">← Précédent</Link>}
+          {page > 1 && <Link href={qs({ page: String(page - 1) })} className="rounded-xl bg-paper px-4 py-2 font-semibold ring-1 ring-line">← Précédent</Link>}
           <span className="text-sm text-ink-500">Page {page} / {pages}</span>
-          {page < pages && <Link href={qs({ page: String(page + 1) })} className="rounded-xl bg-white px-4 py-2 font-semibold ring-1 ring-line">Suivant →</Link>}
+          {page < pages && <Link href={qs({ page: String(page + 1) })} className="rounded-xl bg-paper px-4 py-2 font-semibold ring-1 ring-line">Suivant →</Link>}
         </div>
       )}
 
