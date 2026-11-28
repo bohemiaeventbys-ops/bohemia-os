@@ -44,7 +44,7 @@ export default async function Semaine({ searchParams }: { searchParams: Promise<
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold">{ar ? "هاد السيمانة" : "Cette semaine"}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{ar ? "هاد السيمانة" : "Cette semaine"}</h1>
         <div className="flex items-center gap-1" dir="ltr">
           <Link href={`/semaine?du=${addDays(monday, -7)}`} className="grid h-11 w-11 place-items-center rounded-xl bg-paper ring-1 ring-line" aria-label="Semaine précédente"><ChevronLeft className="h-5 w-5" /></Link>
           <Link href="/semaine" className="h-11 rounded-xl bg-paper px-3 text-sm font-semibold leading-[44px] ring-1 ring-line">{ar ? "اليوم" : "Aujourd'hui"}</Link>

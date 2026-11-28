@@ -37,8 +37,8 @@ export default async function Fiche({ params, searchParams }: { params: Promise<
   const lg: FicheLang = isFicheLang(sp.langue) ? sp.langue : await getLang();
   const ar = lg === "ar";
   /** Libellé dans la langue choisie ; en bilingue : français puis arabe */
-  const L = (k: FicheKey): ReactNode => lg === "fr" ? FICHE[k][0] : lg === "ar" ? FICHE[k][1] : <>{FICHE[k][0]} <span lang="ar" dir="rtl" className="font-normal">· {FICHE[k][1]}</span></>;
-  const both = (fr: string, arTxt: string | null | undefined): ReactNode => lg === "fr" || !arTxt ? fr : lg === "ar" ? <span lang="ar" dir="rtl">{arTxt}</span> : <>{fr} <span lang="ar" dir="rtl" className="font-normal text-ink-500">· {arTxt}</span></>;
+  const L = (k: FicheKey): ReactNode => lg === "fr" ? FICHE[k][0] : lg === "ar" ? FICHE[k][1] : <>{FICHE[k][0]}<span className="mx-1 font-normal text-ink-300">/</span><span lang="ar" dir="rtl" className="font-normal">{FICHE[k][1]}</span></>;
+  const both = (fr: string, arTxt: string | null | undefined): ReactNode => lg === "fr" || !arTxt ? fr : lg === "ar" ? <span lang="ar" dir="rtl">{arTxt}</span> : <>{fr}<span className="mx-1 font-normal text-ink-300">/</span><span lang="ar" dir="rtl" className="font-normal text-ink-500">{arTxt}</span></>;
   const supabase = await createClient();
   const { data: e } = await supabase.from("events").select("*").eq("id", id).maybeSingle<EventRow>();
   if (!e) notFound();
@@ -99,7 +99,7 @@ export default async function Fiche({ params, searchParams }: { params: Promise<
         <header className="flex items-start justify-between gap-4 border-b-4 border-olive-700 pb-4">
           <div className="min-w-0">
             <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{e.name}</h1>
-            <p className="mt-1 text-lg font-semibold text-olive-700">{lg === "ar" ? dayLong(e.event_date, "ar") : dayLong(e.event_date, "fr")}{lg === "bi" && <span lang="ar" dir="rtl" className="ms-2 font-normal text-ink-500">· {dayLong(e.event_date, "ar")}</span>}</p>
+            <p className="mt-1 text-lg font-semibold text-olive-700">{lg === "ar" ? dayLong(e.event_date, "ar") : dayLong(e.event_date, "fr")}{lg === "bi" && <><span className="mx-1 font-normal text-ink-300">/</span><span lang="ar" dir="rtl" className="font-normal text-ink-500">{dayLong(e.event_date, "ar")}</span></>}</p>
             <p className="text-ink-500">{both(EVENT_TYPE[e.event_type], TYPE_AR[e.event_type])}{e.client_name ? ` · ${e.client_name}` : ""}{!ar && ` · ${EVENT_STATUS[e.status].label}`}</p>
             <p className={`mt-1 inline-block rounded-full px-3 py-0.5 text-xs font-bold tracking-wide ${direction ? "bg-ochre-100 text-ochre-700" : "bg-sand-100 text-ink-500"}`}>{L(direction ? "direction" : "team")}</p>
           </div>
@@ -251,7 +251,7 @@ export default async function Fiche({ params, searchParams }: { params: Promise<
                     <tr key={a.id} className="border-b border-line">
                       <td className="py-1.5 font-semibold">{a.employee_id ? fullName(people.get(a.employee_id)) : <>{a.external_name} ({L("extra")})</>}{a.is_lead ? " ★" : ""}</td>
                       <td className="py-1.5 ps-2">{r ? both(r.fr, r.ar) : a.role}{a.mission ? <> · {both(a.mission, MISSION_AR[a.mission])}</> : ""}</td>
-                      <td dir="ltr" className="py-1.5 ps-2 text-end font-bold tabular-nums">{a.start_at ? `${toLocalISODate(a.start_at) !== e.event_date ? formatDate(a.start_at) + " " : ""}${toLocalTime(a.start_at)}${a.end_at ? ` → ${toLocalTime(a.end_at)}` : ""}` : "—"}</td>
+                      <td dir="ltr" className="whitespace-nowrap py-1.5 ps-2 text-end font-bold tabular-nums">{a.start_at ? `${toLocalISODate(a.start_at) !== e.event_date ? formatDate(a.start_at) + " " : ""}${toLocalTime(a.start_at)}${a.end_at ? ` → ${toLocalTime(a.end_at)}` : ""}` : "—"}</td>
                     </tr>
                   );
                 })}

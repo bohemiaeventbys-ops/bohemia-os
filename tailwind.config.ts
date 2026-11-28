@@ -19,7 +19,7 @@ const config: Config = {
         // Accents chaleureux (plus colorés, restent doux) : par statut, par département, par module
         sage: { 50: "#F2F5EE", 100: "#E3EBD9", 200: "#CCDABB", 400: "#88A372", 500: "#6E8A58", 600: "#5C7549", 700: "#4A5E3B", 800: "#3B4B2F" },
         clay: { 50: "#FCF1EC", 100: "#F7DFD3", 200: "#EEC1AC", 500: "#C46A47", 600: "#A9573A", 700: "#8A452D" },
-        ochre: { 50: "#FCF6E9", 100: "#F8EACB", 200: "#EFD59A", 500: "#C9963A", 600: "#A97C2C", 700: "#865F1F" },
+        ochre: { 50: "#FCF6E9", 100: "#F8EACB", 200: "#EFD59A", 300: "#E2BC6E", 400: "#D6A84F", 500: "#C9963A", 600: "#A97C2C", 700: "#865F1F" },
         mist: { 50: "#EFF4F8", 100: "#DCE7F0", 200: "#BCD0E0", 500: "#5E86A6", 600: "#4C6F8C", 700: "#3D5A72" },
         rose: { 50: "#FCF1F2", 100: "#F8DFE2", 200: "#F0C2C8", 500: "#C9707E", 600: "#AE5867", 700: "#8C4250" },
         plum: { 50: "#F6F2F9", 100: "#EBE2F3", 200: "#D7C6E7", 500: "#8E6FB0", 600: "#775A97", 700: "#5F4779" },

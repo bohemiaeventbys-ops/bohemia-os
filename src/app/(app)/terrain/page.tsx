@@ -73,7 +73,7 @@ export default async function TerrainPage({ searchParams }: { searchParams: Prom
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
-        <h1 className="font-display text-3xl font-semibold">{tr("t.title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{tr("t.title")}</h1>
         <p className="mt-1 text-[15px] text-ink-500">{tr("t.subtitle")}</p>
       </div>
       <nav className="grid grid-cols-3 gap-2">

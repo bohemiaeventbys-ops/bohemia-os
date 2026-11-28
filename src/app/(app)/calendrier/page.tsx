@@ -141,15 +141,17 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           ))}
         </div>
       </div>
-      <form className="mb-5 flex flex-wrap items-center gap-2">
+      <details className="mb-5" open={!!(sp.employe || sp.departement || sp.type || sp.statut)}>
+      <summary className="mb-2 cursor-pointer text-sm font-semibold text-ink-500">Filtres (employé, département, type…)</summary>
+      <form className="flex flex-wrap items-center gap-2">
         <input type="hidden" name="vue" value={vue} /><input type="hidden" name="date" value={ref} />{sp.afficher && <input type="hidden" name="afficher" value={sp.afficher} />}
         <Select name="employe" defaultValue={sp.employe ?? ""} className="h-9 w-48 py-1"><option value="">Tous les employés</option>{employees.map((e) => <option key={e.id} value={e.id}>{fullName(e)}</option>)}</Select>
         <Select name="departement" defaultValue={sp.departement ?? ""} className="h-9 w-56 py-1"><option value="">Tous les départements</option>{departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</Select>
         <Select name="type" defaultValue={sp.type ?? ""} className="h-9 w-44 py-1"><option value="">Tous types</option>{Object.entries(EVENT_TYPE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select>
         <Select name="statut" defaultValue={sp.statut ?? ""} className="h-9 w-44 py-1"><option value="">Tous statuts</option>{Object.entries(EVENT_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</Select>
         <button className={buttonClass("secondary", "sm")}>Filtrer</button>
-        <span className="text-xs text-ink-300">Le filtre véhicule arrivera avec le module Transport (Phase 5).</span>
       </form>
+      </details>
 
       {vue === "mois" && (
         <div className="card overflow-hidden">
@@ -174,6 +176,12 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
               );
             })}
           </div>
+        </div>
+      )}
+
+      {(vue === "mois" || vue === "annee") && (
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-ink-500">
+          {(Object.keys(KIND_STYLE) as Kind[]).map((k) => <span key={k} className="flex items-center gap-1.5"><span className={cn("h-2.5 w-2.5 rounded-full", DOT[k])} />{KIND_STYLE[k].label}</span>)}
         </div>
       )}
 
