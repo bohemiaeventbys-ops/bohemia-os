@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import "@fontsource-variable/inter";
-import "@fontsource/cormorant-garamond/400.css";
-import "@fontsource/cormorant-garamond/500.css";
-import "@fontsource/cormorant-garamond/600.css";
+import "@fontsource-variable/dm-sans";
+import "@fontsource-variable/fraunces";
 import "./globals.css";
 import { getLang } from "@/lib/lang";
 import { dir } from "@/lib/i18n";

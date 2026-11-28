@@ -6,9 +6,12 @@
   html { color-scheme: light; }
   body {
     @apply bg-ivory text-ink font-sans antialiased;
-    font-feature-settings: "cv11", "ss01";
+    
   }
   h1, h2, h3 { @apply text-ink; }
+  /* Grands titres : serif élégante ; petits titres et texte : sans-serif lisible */
+  h1 { font-family: theme("fontFamily.display"); font-weight: 600; letter-spacing: -0.01em; font-optical-sizing: auto; }
+  [lang="ar"] h1, h1[lang="ar"] { font-family: theme("fontFamily.sans"); }
   .font-display { font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
   ::selection { @apply bg-nude-200; }
   /* iPhone : les champs date/heure gardent la largeur du cadre et montrent leur valeur à gauche */

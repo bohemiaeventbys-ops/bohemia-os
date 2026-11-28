@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, CalendarClock, Calculator, FileText, Hammer, Lock, PackagePlus, Pencil, Plus, Sparkles, Warehouse } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, PackageCheck, CalendarClock, Calculator, FileText, Hammer, Lock, PackagePlus, Pencil, Plus, Sparkles, Warehouse } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Empty } from "@/components/ui/empty";
@@ -129,7 +129,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                   {mainImg.img ? <Zoomable src={mainImg.img} alt={main.title} href={mainImg.file ?? undefined} />
                     : mainImg.file ? <a href={mainImg.file} target="_blank" rel="noreferrer" className="flex h-40 items-center justify-center gap-2 bg-sand-50 font-bold"><FileText className="h-6 w-6" /> Ouvrir le PDF du design</a> : null}
                   <p className={`px-4 py-2 text-sm font-bold ${fullyApproved ? "bg-sage-100 text-sage-800" : "bg-ochre-100 text-ochre-700"}`}>
-                    {fullyApproved ? "✓ Design approuvé pour l'installation" : "⏳ En attente"} · {main.title} v{main.version}{mainImg.pdf ? " · PDF" : ""}
+                    {fullyApproved ? "✓ Design approuvé pour l'installation" : "⏳ En attente des deux validations"} · {main.title} v{main.version}{mainImg.pdf ? " · PDF" : ""}
                   </p>
                 </div>
                 <DesignValidations eventId={id} proofId={main.id} canEdit={canDesign} {...validations(main)} />
@@ -196,7 +196,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                         <p className="font-semibold leading-tight">{i?.name ?? "Article"}{i?.code && <span className="ms-2 font-mono text-xs font-bold text-ink-500">{i.code}</span>}</p>
                         {specs && <p className="text-xs text-ink-500">{specs}</p>}
                         {asks.length > 0 && <p className="mt-0.5 text-sm text-ink-600">{asks.join(" · ")}</p>}
-                        <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${st.cls}`}>{miss && <AlertTriangle className="me-1 inline h-3 w-3" />}{st.label}</span>
+                        <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${st.cls}`}>{miss ? <AlertTriangle className="h-3.5 w-3.5" /> : l.status === "reserve" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <PackageCheck className="h-3.5 w-3.5" />}{st.label}</span>
                         {short && canMove && <Link href={`/evenements/${id}/materiel/choisir?cat=${i?.category_id ?? ""}`} className="ms-2 text-xs font-semibold text-clay-700 underline">Choisir un autre modèle</Link>}
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -282,7 +282,7 @@ function Fact({ label, children, className }: { label: string; children: React.R
   return <div className={className}><dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-400">{label}</dt><dd className="font-semibold">{children}</dd></div>;
 }
 function Todo() {
-  return <span className="font-semibold text-ochre-700">À renseigner</span>;
+  return <span className="inline-flex items-center gap-1 font-semibold text-clay-700"><AlertCircle className="h-4 w-4" /> À renseigner</span>;
 }
 function Fold({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (

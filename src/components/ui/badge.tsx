@@ -1,6 +1,10 @@
 import { cn } from "@/lib/cn";
 import type { Tone } from "@/lib/labels";
 import type { ReactNode } from "react";
+import { AlertTriangle, CheckCircle2, Clock3, Info } from "lucide-react";
+
+/** Icône claire selon le sens : validé, attention, en attente, information */
+const TONE_ICON: Partial<Record<Tone, typeof Info>> = { sage: CheckCircle2, clay: AlertTriangle, ochre: Clock3, mist: Info };
 
 export const toneBg: Record<Tone, string> = {
   neutral: "bg-sand-100 text-ink-500 ring-line",
@@ -28,7 +32,7 @@ export const toneTile: Record<Tone, string> = {
 export function Badge({ tone = "neutral", dot = true, children, className }: { tone?: Tone; dot?: boolean; children: ReactNode; className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset whitespace-nowrap", toneBg[tone], className)}>
-      {dot && <span className={cn("h-2 w-2 rounded-full", toneDot[tone])} />}
+      {dot && (() => { const I = TONE_ICON[tone]; return I ? <I className="h-3.5 w-3.5 shrink-0" aria-hidden /> : <span className={cn("h-2 w-2 rounded-full", toneDot[tone])} />; })()}
       {children}
     </span>
   );
