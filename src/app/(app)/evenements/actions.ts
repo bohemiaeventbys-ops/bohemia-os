@@ -69,6 +69,14 @@ export async function createEvent(_: ActionResult, fd: FormData): Promise<Action
   return { redirect: `/evenements/${data.id}` };
 }
 
+/** « Nouvel événement » avec design et matériel : crée l'événement et renvoie son id (le navigateur envoie ensuite le design et réserve le stock). */
+export async function createEventWithId(fd: FormData): Promise<{ id: string } | { error: string }> {
+  const r = await createEvent(null, fd);
+  const id = r?.redirect?.split("/").pop();
+  if (id) return { id };
+  return { error: r?.error ?? "Création impossible." };
+}
+
 export async function updateEvent(_: ActionResult, fd: FormData): Promise<ActionResult> {
   const id = str(fd, "id");
   const p0 = payload(fd);

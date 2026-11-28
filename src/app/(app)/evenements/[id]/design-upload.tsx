@@ -10,6 +10,51 @@ import { registerDesign, registerInspirations } from "./design-actions";
 
 const BUCKET = "design-proofs";
 
+/** Envoie des photos d'inspiration (20 max) et les enregistre. */
+export async function uploadInspirationFiles(eventId: string, list: File[], setBusy: (s: string | null) => void = () => {}) {
+  const supabase = createClient();
+  const paths: string[] = [];
+  const files = list.filter((f) => f.type.startsWith("image/")).slice(0, 20);
+  for (const [i, f] of files.entries()) {
+    setBusy(`Photo ${i + 1} sur ${files.length}…`);
+    const body = await shrinkImage(f, 1800, 0.82);
+    const path = `${eventId}/inspirations/${rid()}.jpg`;
+    const { error } = await supabase.storage.from(BUCKET).upload(path, body, { contentType: "image/jpeg" });
+    if (error) throw new Error("Envoi impossible : vérifiez le réseau et réessayez.");
+    paths.push(path);
+  }
+  if (paths.length) {
+    const r = await registerInspirations(eventId, paths);
+    if (!r.ok) throw new Error(r.error);
+  }
+}
+
+/** Envoie un design (image ou PDF) d'un événement et l'enregistre. Utilisé par la fiche et par « Nouvel événement ». */
+export async function uploadDesignFile(eventId: string, f: File, setBusy: (s: string | null) => void = () => {}) {
+  const supabase = createClient();
+  const pdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+  if (!pdf && !f.type.startsWith("image/")) throw new Error("Image ou PDF uniquement.");
+  if (f.size > 25 * 1024 * 1024) throw new Error("Fichier trop lourd (25 Mo max).");
+  setBusy("Préparation…");
+  const body = pdf ? f : await shrinkImage(f, 2600, 0.9);
+  const path = `${eventId}/${rid()}.${pdf ? "pdf" : "jpg"}`;
+  let previewPath: string | null = null;
+  if (pdf) {
+    const prev = await pdfFirstPage(f);
+    if (prev) {
+      previewPath = `${eventId}/${rid()}-apercu.jpg`;
+      setBusy("Envoi de l'aperçu…");
+      const { error } = await supabase.storage.from(BUCKET).upload(previewPath, prev, { contentType: "image/jpeg" });
+      if (error) previewPath = null;
+    }
+  }
+  setBusy("Envoi du design…");
+  const { error } = await supabase.storage.from(BUCKET).upload(path, body, { contentType: pdf ? "application/pdf" : "image/jpeg" });
+  if (error) throw new Error("Envoi impossible : vérifiez le réseau et réessayez.");
+  const r = await registerDesign(eventId, path, previewPath, "Design");
+  if (!r.ok) throw new Error(r.error);
+}
+
 /**
  * « Ajouter le design » (image ou PDF) et « Ajouter des inspirations » (plusieurs photos).
  * Le fichier part directement du téléphone vers le stockage (pas de limite de taille du serveur),
@@ -24,46 +69,11 @@ export function DesignUpload({ eventId, kind, className, label }: { eventId: str
   async function onFiles(list: FileList | null) {
     if (!list?.length) return;
     setErr(null);
-    const supabase = createClient();
     try {
       if (kind === "design") {
-        const f = list[0];
-        const pdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
-        if (!pdf && !f.type.startsWith("image/")) throw new Error("Image ou PDF uniquement.");
-        if (f.size > 25 * 1024 * 1024) throw new Error("Fichier trop lourd (25 Mo max).");
-        setBusy("Préparation…");
-        const body = pdf ? f : await shrinkImage(f, 2600, 0.9);
-        const path = `${eventId}/${rid()}.${pdf ? "pdf" : "jpg"}`;
-        let previewPath: string | null = null;
-        if (pdf) {
-          const prev = await pdfFirstPage(f);
-          if (prev) {
-            previewPath = `${eventId}/${rid()}-apercu.jpg`;
-            setBusy("Envoi de l'aperçu…");
-            const { error } = await supabase.storage.from(BUCKET).upload(previewPath, prev, { contentType: "image/jpeg" });
-            if (error) previewPath = null;
-          }
-        }
-        setBusy("Envoi du design…");
-        const { error } = await supabase.storage.from(BUCKET).upload(path, body, { contentType: pdf ? "application/pdf" : "image/jpeg" });
-        if (error) throw new Error("Envoi impossible : vérifiez le réseau et réessayez.");
-        const r = await registerDesign(eventId, path, previewPath, "Design");
-        if (!r.ok) throw new Error(r.error);
+        await uploadDesignFile(eventId, list[0], setBusy);
       } else {
-        const paths: string[] = [];
-        const files = Array.from(list).filter((f) => f.type.startsWith("image/")).slice(0, 20);
-        for (const [i, f] of files.entries()) {
-          setBusy(`Photo ${i + 1} sur ${files.length}…`);
-          const body = await shrinkImage(f, 1800, 0.82);
-          const path = `${eventId}/inspirations/${rid()}.jpg`;
-          const { error } = await supabase.storage.from(BUCKET).upload(path, body, { contentType: "image/jpeg" });
-          if (error) throw new Error("Envoi impossible : vérifiez le réseau et réessayez.");
-          paths.push(path);
-        }
-        if (paths.length) {
-          const r = await registerInspirations(eventId, paths);
-          if (!r.ok) throw new Error(r.error);
-        }
+        await uploadInspirationFiles(eventId, Array.from(list), setBusy);
       }
       router.refresh();
     } catch (e) {
