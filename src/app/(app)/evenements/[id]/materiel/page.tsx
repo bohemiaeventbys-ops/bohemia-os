@@ -17,8 +17,7 @@ import { addDays, diffDays, formatDateTime, formatDayLong, toLocalISODate, today
 import { fullName } from "@/lib/format";
 import { LINE_STATUS, STOCK_BUCKET, type EventItem, type StockCategory, type StockItem } from "@/lib/stock";
 import type { EventRow } from "@/lib/types";
-import { reserveItem, returnLine, setLineStep } from "../../../stock/actions";
-import { ItemPicker } from "./item-picker";
+import { reserveItem, returnLine, saveLineDetails, setLineStep } from "../../../stock/actions";
 
 export const metadata = { title: "Matériel de l'événement" };
 
@@ -37,11 +36,10 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
   if (!e) notFound();
   const canMove = s.can("stock.manage") || s.can("stock.move") || s.can("events.manage");
 
-  const [{ data: lineData }, { data: itemData }, { data: catData }, { data: near }, { data: staff }] = await Promise.all([
+  const [{ data: lineData }, { data: itemData }, { data: catData }, { data: staff }] = await Promise.all([
     supabase.from("event_items").select("*").eq("event_id", id).order("created_at"),
     supabase.from("stock_items").select("*").eq("is_active", true).order("name").limit(2000),
     supabase.from("stock_categories").select("*").order("sort_order"),
-    supabase.from("events").select("*").neq("id", id).neq("status", "annule").gte("event_date", addDays(e.event_date, -20)).lte("event_date", addDays(e.event_date, 20)),
     supabase.from("employees").select("id, first_name, last_name"),
   ]);
   const lines = (lineData ?? []) as EventItem[];
@@ -51,23 +49,9 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
   const catMap = new Map(cats.map((c) => [c.id, c]));
   const people = new Map((staff ?? []).map((p) => [p.id, p]));
 
-  // Disponible à ces dates = bon état − réservé par les autres événements qui se chevauchent
-  const mine = span(e);
-  const overlapping = ((near ?? []) as EventRow[]).filter((o) => { const x = span(o); return x.from <= mine.to && x.to >= mine.from; });
-  const { data: otherLines } = overlapping.length
-    ? await supabase.from("event_items").select("item_id, qty").in("event_id", overlapping.map((o) => o.id)).neq("status", "retourne")
-    : { data: [] };
-  const taken = new Map<string, number>();
-  for (const l of otherLines ?? []) taken.set(l.item_id, (taken.get(l.item_id) ?? 0) + l.qty);
-  const avail = (i: StockItem) => Math.max(0, i.qty_good - (taken.get(i.id) ?? 0));
 
   const urls = await signedUrls(supabase, STOCK_BUCKET, [...lines.map((l) => itemMap.get(l.item_id)?.photo_path), ...lines.flatMap((l) => [l.loaded_photo_path, l.return_photo_path])]);
-  const already = new Set(lines.map((l) => l.item_id));
-  const pickUrls = canMove ? await signedUrls(supabase, STOCK_BUCKET, items.filter((i) => !already.has(i.id)).map((i) => i.photo_path)) : new Map<string, string>();
-  const pickItems = items.filter((i) => !already.has(i.id)).map((i) => ({
-    id: i.id, name: i.name, code: i.code ?? null, cat: i.category_id ? catMap.get(i.category_id)?.name ?? null : null,
-    photo: i.photo_path ? pickUrls.get(i.photo_path) ?? null : null, avail: avail(i), place: i.location,
-  }));
+
   const days = diffDays(e.event_date, todayISO());
   const count = (st: EventItem["status"]) => lines.filter((l) => l.status === st).length;
 
@@ -96,7 +80,7 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
         <Card className="mb-6">
           <CardHeader title="+ Ajouter du stock" icon={<PackagePlus />} tone="rose" subtitle="Le disponible tient compte des autres événements aux mêmes dates" />
           <CardBody>
-            <ItemPicker eventId={id} items={pickItems} />
+            <Link href={`/evenements/${id}/materiel/choisir`} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-ochre-500 px-4 text-[16px] font-bold text-white shadow-card"><PackagePlus className="h-5 w-5" /> Choisir le matériel (plusieurs articles d&apos;un coup)</Link>
           </CardBody>
         </Card>
       )}
@@ -129,6 +113,7 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
                             <p className="text-[15px] font-semibold leading-snug">{i?.name ?? "Article"}</p>
                             <p className="text-xs text-ink-400">{i?.location ? `Rangé : ${i.location}` : c?.name}</p>
                             {l.finish && <p className="mt-0.5 inline-block rounded-lg bg-plum-100 px-2 py-0.5 text-xs font-semibold text-plum-700">Finition : {l.finish}</p>}
+                            {l.zone && <p className="text-xs text-ink-500">Zone de pose : {l.zone}</p>}
                             {l.note && <p className="text-xs text-ink-500">« {l.note} »</p>}
                           </div>
                           <span className="shrink-0 rounded-xl bg-sand-100 px-3 py-1.5 font-display text-2xl font-semibold tabular-nums">× {l.qty}</span>
@@ -149,6 +134,19 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
                               </div>
                             </ActionForm>
                           </div>
+                        )}
+
+                        {canMove && l.status !== "retourne" && (
+                          <details className="text-sm">
+                            <summary className="cursor-pointer text-ink-500">Consignes : finition, zone de pose, photo de référence</summary>
+                            <ActionForm action={saveLineDetails} className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
+                              <input type="hidden" name="line_id" value={l.id} /><input type="hidden" name="event_id" value={id} />
+                              <Input name="finish" defaultValue={l.finish ?? ""} placeholder="Couleur / finition" />
+                              <Input name="zone" defaultValue={l.zone ?? ""} placeholder="Zone de pose" />
+                              <PhotoInput name="ref_photo" label="Photo de référence" />
+                              <SubmitButton variant="secondary">Enregistrer</SubmitButton>
+                            </ActionForm>
+                          </details>
                         )}
 
                         {canMove && l.status === "prepare" && (

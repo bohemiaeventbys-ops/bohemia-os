@@ -68,7 +68,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
   const items: Item[] = [];
   for (const e of events) {
-    const href = `/evenements/${e.id}`;
+    const href = `/evenements/${e.id}/fiche`;
     if (show.has("evenements")) items.push({ date: e.event_date, time: e.start_at ? toLocalTime(e.start_at) : undefined, kind: "evenement", title: e.name, href, meta: `${EVENT_TYPE[e.event_type]} · ${EVENT_STATUS[e.status].label}${e.address ? ` · ${e.address}` : ""}` });
     if (show.has("logistique")) {
       if (e.delivery_at) items.push({ date: toLocalISODate(e.delivery_at), time: toLocalTime(e.delivery_at), kind: "livraison", title: e.name, href });

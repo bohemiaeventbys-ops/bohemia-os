@@ -9,7 +9,7 @@ export const dir = (l: Lang) => (l === "ar" ? "rtl" : "ltr");
 
 const FR = {
   // Menus
-  "nav.terrain": "Terrain", "nav.dashboard": "Tableau de bord", "nav.ma-journee": "Ma journée", "nav.calendrier": "Calendrier",
+  "nav.terrain": "Terrain", "nav.semaine": "Cette semaine", "short.semaine": "Semaine", "nav.dashboard": "Tableau de bord", "nav.ma-journee": "Ma journée", "nav.calendrier": "Calendrier",
   "nav.evenements": "Événements", "nav.taches": "Tâches", "nav.mes-taches": "Mes tâches", "nav.equipe": "Équipe", "nav.pointage": "Pointage",
   "nav.mon-pointage": "Mon pointage", "nav.clients": "Clients", "nav.devis": "Devis & factures", "nav.tva": "TVA", "nav.stock": "Dépôt & Stock",
   "nav.achats": "Achats", "nav.fournisseurs": "Fournisseurs", "nav.conges": "Congés & absences", "nav.mes-conges": "Mes congés",
@@ -53,7 +53,7 @@ const FR = {
 export type Key = keyof typeof FR;
 
 const AR: Record<Key, string> = {
-  "nav.terrain": "الميدان", "nav.dashboard": "لوحة القيادة", "nav.ma-journee": "يومي", "nav.calendrier": "المواعيد",
+  "nav.terrain": "الميدان", "nav.semaine": "هاد السيمانة", "short.semaine": "السيمانة", "nav.dashboard": "لوحة القيادة", "nav.ma-journee": "يومي", "nav.calendrier": "المواعيد",
   "nav.evenements": "الحفلات", "nav.taches": "المهام", "nav.mes-taches": "مهامي", "nav.equipe": "الفريق", "nav.pointage": "الحضور",
   "nav.mon-pointage": "حضوري", "nav.clients": "الزبناء", "nav.devis": "العروض والفواتير", "nav.tva": "الضريبة TVA", "nav.stock": "المخزن",
   "nav.achats": "المشتريات", "nav.fournisseurs": "المزودون", "nav.conges": "العطل والغياب", "nav.mes-conges": "عطلي",

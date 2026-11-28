@@ -59,7 +59,7 @@ export function MobileNav({ main, bottom, unread, moreLabel = "Plus" }: { main: 
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const SHORT: Record<string, string> = { dashboard: "Accueil", "ma-journee": "Ma journée", calendrier: "Agenda", evenements: "Événements", taches: "Tâches", equipe: "Équipe", pointage: "Pointage", stock: "Stock", conges: "Congés", achats: "Achats", fournisseurs: "Fournisseurs", clients: "Clients", devis: "Devis", tva: "TVA" };
-  const PRIORITY = ["terrain", "dashboard", "ma-journee", "taches", "stock", "evenements", "calendrier", "conges", "pointage", "equipe"];
+  const PRIORITY = ["semaine", "terrain", "dashboard", "ma-journee", "taches", "stock", "evenements", "calendrier", "conges", "pointage", "equipe"];
   const rank = (k: string) => (PRIORITY.includes(k) ? PRIORITY.indexOf(k) : 99);
   const sorted = [...main].sort((a, b) => rank(a.key) - rank(b.key));
   const visible = sorted.slice(0, 4);

@@ -23,6 +23,7 @@ export function buildNav(s: Session, lang: Lang = "fr") {
   const main: NavItem[] = [];
   if (s.can("dashboard.direction") || managerish) main.push({ key: "dashboard", label: "Tableau de bord", href: "/", icon: "layout", tone: "ink" });
   main.push({ key: "terrain", label: "Terrain", href: "/terrain", icon: "truck", tone: "teal" });
+  main.push({ key: "semaine", label: "Cette semaine", href: "/semaine", icon: "calendar", tone: "rose" });
   main.push({ key: "ma-journee", label: "Ma journée", href: "/ma-journee", icon: "sun", tone: "ochre" });
   main.push({ key: "calendrier", label: "Calendrier", href: "/calendrier", icon: "calendar", tone: "mist" });
   main.push({ key: "evenements", label: "Événements", href: "/evenements", icon: "sparkles", tone: "rose" });

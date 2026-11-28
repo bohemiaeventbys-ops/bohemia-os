@@ -15,7 +15,7 @@ export interface EventItem {
   id: string; event_id: string; item_id: string; qty: number; note: string | null; status: "reserve" | "prepare" | "charge" | "retourne";
   prepared_at: string | null; loaded_at: string | null; loaded_photo_path: string | null; loaded_by: string | null;
   returned_at: string | null; qty_returned_good: number | null; qty_returned_repair: number | null; qty_returned_broken: number | null;
-  qty_missing: number | null; return_note: string | null; return_photo_path: string | null; finish?: string | null;
+  qty_missing: number | null; return_note: string | null; return_photo_path: string | null; finish?: string | null; zone?: string | null; ref_photo_path?: string | null;
 }
 export interface StockMovement { id: string; item_id: string; event_id: string | null; kind: string; qty: number; detail: string | null; photo_path: string | null; by_employee: string | null; created_at: string }
 

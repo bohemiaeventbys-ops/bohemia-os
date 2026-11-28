@@ -209,16 +209,16 @@ async function Depot({ lang, events, canMove }: { lang: Lang; events: Ev[]; canM
   if (!events.length) return <None lang={lang} />;
   const supabase = await createClient();
   const { data: lines } = await supabase.from("event_items")
-    .select("id, event_id, item_id, qty, note, finish, status, stock_items(name, name_ar, code, location, photo_path)")
+    .select("id, event_id, item_id, qty, note, finish, zone, status, stock_items(name, name_ar, code, location, photo_path)")
     .in("event_id", events.map((e) => e.id));
-  type L = { id: string; event_id: string; item_id: string; qty: number; note: string | null; finish: string | null; status: string;
+  type L = { id: string; event_id: string; item_id: string; qty: number; note: string | null; finish: string | null; zone: string | null; status: string;
     stock_items: { name: string; name_ar: string | null; code: string | null; location: string | null; photo_path: string | null } | null };
   const all = (lines ?? []) as unknown as L[];
   const urls = await signedUrls(supabase, STOCK_BUCKET, all.map((l) => l.stock_items?.photo_path));
   const groups: DepotGroup[] = events.map((e) => ({
     id: e.id, name: e.name, day: dayLabel(lang, e.event_date), load: e.load_at ? toLocalTime(e.load_at) : null,
     lines: all.filter((l) => l.event_id === e.id).map((l) => ({
-      id: l.id, itemId: l.item_id, qty: l.qty, status: l.status, finish: l.finish ?? l.note,
+      id: l.id, itemId: l.item_id, qty: l.qty, status: l.status, finish: [l.finish ?? l.note, l.zone && `📍 ${l.zone}`].filter(Boolean).join(" · ") || null,
       name: l.stock_items?.name ?? "—", nameAr: l.stock_items?.name_ar ?? null, code: l.stock_items?.code ?? null, place: l.stock_items?.location ?? null,
       photo: l.stock_items?.photo_path ? urls.get(l.stock_items.photo_path) ?? null : null,
     })).sort((a, b) => Number(a.status === "charge") - Number(b.status === "charge") || (a.place ?? "").localeCompare(b.place ?? "")),
@@ -237,14 +237,14 @@ async function Installation({ lang, events }: { lang: Lang; events: Ev[] }) {
   const supabase = await createClient();
   const ids = events.map((e) => e.id);
   const [{ data: proofs }, { data: photos }] = await Promise.all([
-    supabase.from("design_proofs").select("id, event_id, title, file_path, version, created_at").eq("status", "valide").in("event_id", ids).order("created_at", { ascending: false }),
+    supabase.from("design_proofs").select("id, event_id, title, file_path, preview_path, version, created_at").eq("status", "valide").in("event_id", ids).order("created_at", { ascending: false }),
     supabase.from("field_docs").select("id, event_id, file_path, kind, note, created_at").in("kind", ["photo_installation", "probleme"]).in("event_id", ids).order("created_at", { ascending: false }),
   ]);
-  const proofUrls = await signedUrls(supabase, PROOF_BUCKET, (proofs ?? []).map((p) => p.file_path as string));
+  const proofUrls = await signedUrls(supabase, PROOF_BUCKET, (proofs ?? []).flatMap((p) => [p.file_path as string, p.preview_path as string | null]));
   const photoUrls = await signedUrls(supabase, "field-docs", (photos ?? []).map((p) => p.file_path as string | null));
   const [next, ...later] = events;
   const card = (e: Ev, open: boolean) => {
-    const vis = (proofs ?? []).filter((p) => p.event_id === e.id);
+    const vis = (proofs ?? []).filter((p) => p.event_id === e.id).filter((p, i, a) => a.findIndex((x) => String(x.title).toLowerCase() === String(p.title).toLowerCase()) === i);
     const ph = (photos ?? []).filter((p) => p.event_id === e.id);
     return (
       <Card key={e.id} open={open} summary={<Head lang={lang} e={e} big={open} />}>
@@ -256,12 +256,13 @@ async function Installation({ lang, events }: { lang: Lang; events: Ev[] }) {
           {vis.length === 0 ? <p className="rounded-xl bg-sand-50 px-3 py-4 text-center text-ink-400 ring-1 ring-line">{t(lang, "t.noVisual")}</p> : (
             <div className="space-y-3">
               {vis.map((p) => {
-                const u = proofUrls.get(p.file_path as string);
                 const isPdf = /\.pdf$/i.test(p.file_path as string);
+                const u = isPdf ? (p.preview_path ? proofUrls.get(p.preview_path as string) : undefined) : proofUrls.get(p.file_path as string);
+                const file = proofUrls.get(p.file_path as string);
                 return (
-                  <a key={p.id} href={u} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-2xl ring-1 ring-line">
+                  <a key={p.id} href={file} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-2xl ring-1 ring-line">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {u && !isPdf ? <img src={u} alt={p.title as string} className="w-full bg-sand-50 object-contain" /> : <span className="flex h-24 items-center justify-center gap-2 bg-sand-50 font-bold"><FileText className="h-6 w-6" /> PDF</span>}
+                    {u ? <img src={u} alt={p.title as string} className="w-full bg-sand-50 object-contain" /> : <span className="flex h-24 items-center justify-center gap-2 bg-sand-50 font-bold"><FileText className="h-6 w-6" /> PDF</span>}
                     <span className="block bg-sage-100 px-3 py-2 text-sm font-bold text-sage-700" dir="auto">✓ {p.title as string}</span>
                   </a>
                 );

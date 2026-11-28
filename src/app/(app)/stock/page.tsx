@@ -17,16 +17,17 @@ import { EVENT_TYPE } from "@/lib/labels";
 import { STOCK_BUCKET, isLow, type EventItem, type StockCategory, type StockItem } from "@/lib/stock";
 import type { EventRow } from "@/lib/types";
 import { discardItem, repairedItem } from "./actions";
+import { CompactStock } from "./compact";
 
 export const metadata = { title: "Dépôt & Stock" };
 
-type SP = { vue?: string; cat?: string; theme?: string; q?: string };
+type SP = { vue?: string; cat?: string; theme?: string; q?: string; du?: string; au?: string; etat?: string; page?: string };
 
 export default async function StockPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
   const s = await requireSession();
   const supabase = await createClient();
-  const vue = sp.vue === "sorties" || sp.vue === "reparer" || sp.vue === "racheter" ? sp.vue : "inventaire";
+  const vue = sp.vue === "sorties" || sp.vue === "reparer" || sp.vue === "racheter" || sp.vue === "compact" ? sp.vue : "inventaire";
   const canManage = s.can("stock.manage");
   const canMove = canManage || s.can("stock.move") || s.can("events.manage");
 
@@ -42,6 +43,7 @@ export default async function StockPage({ searchParams }: { searchParams: Promis
 
   const tabs = [
     { key: "inventaire", label: "Inventaire", href: "/stock", count: all.length },
+    { key: "compact", label: "Liste compacte", href: "/stock?vue=compact" },
     { key: "sorties", label: "Sorties & retours", href: "/stock?vue=sorties" },
     { key: "reparer", label: "À réparer", href: "/stock?vue=reparer", count: repairCount },
     { key: "racheter", label: "Il en manque", href: "/stock?vue=racheter", count: low.length },
@@ -53,6 +55,7 @@ export default async function StockPage({ searchParams }: { searchParams: Promis
         actions={canManage && <ButtonLink href="/stock/nouveau" size="lg"><Plus className="h-5 w-5" /> Ajouter un article</ButtonLink>} />
       <Tabs active={vue} items={tabs} />
       {vue === "inventaire" && <Inventory sp={sp} all={all} cats={cats} catMap={catMap} />}
+      {vue === "compact" && <CompactStock sp={sp} all={all} cats={cats} canManage={canManage} />}
       {vue === "sorties" && <Outgoing canMove={canMove} />}
       {vue === "racheter" && <LowList items={low} catMap={catMap} />}
       {vue === "reparer" && <Repairs items={all.filter((i) => i.qty_repair > 0 || i.qty_broken > 0)} catMap={catMap} canMove={canMove} canManage={canManage} />}

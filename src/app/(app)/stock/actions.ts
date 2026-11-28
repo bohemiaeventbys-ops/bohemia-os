@@ -220,3 +220,49 @@ export async function returnTool(_: ActionResult, fd: FormData): Promise<ActionR
   refresh(id ?? undefined);
   return { ok: ok ? "Rendu, merci !" : "Rendu : mis de côté pour réparation." };
 }
+
+/** Réserve plusieurs articles d'un coup (tout ou rien, disponibilité vérifiée au moment de confirmer). */
+export async function reserveMany(eventId: string, lines: { item_id: string; qty: number; finish?: string; zone?: string; note?: string; ref_photo_path?: string | null }[]): Promise<{ ok: true; n: number } | { ok: false; error: string }> {
+  if (!/^[0-9a-f-]{36}$/i.test(eventId) || !Array.isArray(lines) || !lines.length || lines.length > 200) return { ok: false, error: "Liste vide." };
+  const clean = lines.map((l) => ({
+    item_id: String(l.item_id), qty: Math.max(1, Math.floor(Number(l.qty) || 0)),
+    finish: (l.finish ?? "").slice(0, 200), zone: (l.zone ?? "").slice(0, 200), note: (l.note ?? "").slice(0, 500),
+    ref_photo_path: l.ref_photo_path && l.ref_photo_path.startsWith(`events/${eventId}/`) ? l.ref_photo_path : null,
+  }));
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("stock_reserve_many", { p_event: eventId, p_lines: clean });
+  if (error) return { ok: false, error: error.message.includes("Permission") ? "Action non autorisée pour votre profil." : error.message };
+  refresh(undefined, eventId);
+  revalidatePath(`/evenements/${eventId}/fiche`);
+  revalidatePath("/terrain");
+  return { ok: true, n: Number(data ?? clean.length) };
+}
+
+/** Modifie la finition, la zone de pose ou la photo de référence d'une ligne */
+export async function saveLineDetails(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const line = str(fd, "line_id");
+  const eventId = str(fd, "event_id");
+  if (!line) return { error: "Action invalide." };
+  const supabase = await createClient();
+  let photo: string | null = null;
+  const f = fd.get("ref_photo");
+  if (f instanceof File && f.size > 0) {
+    const up = await uploadStockPhoto(supabase, `events/${eventId}`, f);
+    if (up.error) return { error: up.error };
+    photo = up.path;
+  }
+  const { error } = await supabase.rpc("stock_line_details", { p_line: line, p_finish: str(fd, "finish") ?? "", p_zone: str(fd, "zone") ?? "", p_ref_photo: photo });
+  if (error) return fail(error);
+  refresh(undefined, eventId ?? undefined);
+  return { ok: "Consignes enregistrées." };
+}
+
+export async function createCategory(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const name = str(fd, "name");
+  if (!name) return { error: "Donnez un nom." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("stock_categories").insert({ name, parent_id: str(fd, "parent_id") });
+  if (error) return fail(error);
+  revalidatePath("/stock");
+  return { ok: "Catégorie créée." };
+}
