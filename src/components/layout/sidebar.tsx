@@ -19,8 +19,8 @@ function Item({ item, pathname, badge }: { item: NavItem; pathname: string; badg
   return (
     <Link href={item.href}
       className={cn("group flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium transition",
-        active ? "bg-paper text-ink shadow-card ring-1 ring-line" : item.phase ? "text-ink-300 hover:text-ink-500" : "text-ink-500 hover:bg-paper/70 hover:text-ink")}>
-      <span className={cn("tile h-8 w-8 transition", item.phase ? "bg-sand-100 text-ink-300" : toneTile[item.tone ?? "neutral"], !active && !item.phase && "opacity-90 group-hover:opacity-100")}>
+        active ? "bg-butter text-olive-800 shadow-card" : item.phase ? "text-white/40 hover:text-white/60" : "text-ivory/85 hover:bg-white/10 hover:text-white")}>
+      <span className={cn("tile h-8 w-8 transition", item.phase ? "bg-white/5 text-white/40" : active ? "bg-rose-300 text-olive-800" : "bg-white/10 text-butter group-hover:bg-white/15")}>
         <NavIcon name={item.icon} className="h-[17px] w-[17px]" />
       </span>
       <span className="flex-1 truncate">{item.label}</span>
@@ -33,21 +33,21 @@ function Item({ item, pathname, badge }: { item: NavItem; pathname: string; badg
 export function Sidebar({ main, upcoming, bottom, unread }: { main: NavItem[]; upcoming: NavItem[]; bottom: NavItem[]; unread: number }) {
   const pathname = usePathname();
   return (
-    <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 print:!hidden lg:flex flex-col border-e border-line bg-sand-50">
+    <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 print:!hidden lg:flex flex-col bg-olive-700 text-ivory">
       <Link href="/" className="flex items-baseline gap-2 px-6 pb-6 pt-7">
-        <span className="font-display text-2xl font-semibold tracking-[0.14em] text-ink">BOHEMIA</span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-500">OS</span>
+        <span className="font-display text-2xl font-semibold tracking-[0.14em] text-butter">BOHEMIA</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-300">OS</span>
       </Link>
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
         {main.map((i) => <Item key={i.key} item={i} pathname={pathname} />)}
         {upcoming.length > 0 && (
           <>
-            <p className="px-3 pb-1.5 pt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-300">Modules à venir</p>
+            <p className="px-3 pb-1.5 pt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">Modules à venir</p>
             {upcoming.map((i) => <Item key={i.key} item={i} pathname={pathname} />)}
           </>
         )}
       </nav>
-      <div className="space-y-1 border-t border-line px-3 py-3">
+      <div className="space-y-1 border-t border-white/10 px-3 py-3">
         {bottom.map((i) => <Item key={i.key} item={i} pathname={pathname} badge={i.key === "notifications" ? unread : undefined} />)}
       </div>
     </aside>
@@ -67,8 +67,8 @@ export function MobileNav({ main, bottom, unread, moreLabel = "Plus" }: { main: 
   const restActive = rest.some((i) => isActive(pathname, i.href));
   const tab = (i: NavItem, active: boolean) => (
     <>
-      <span className={cn("tile h-9 w-9", active ? toneTile[i.tone ?? "neutral"] : "text-ink-300")}><NavIcon name={i.icon} className="h-5 w-5" /></span>
-      <span className={cn("truncate", active && "text-ink")}>{i.short ?? SHORT[i.key] ?? i.label}</span>
+      <span className={cn("tile h-9 w-9", active ? "bg-rose-300 text-olive-800" : "text-ivory/70")}><NavIcon name={i.icon} className="h-5 w-5" /></span>
+      <span className={cn("truncate", active && "font-bold text-butter")}>{i.short ?? SHORT[i.key] ?? i.label}</span>
     </>
   );
   return (
@@ -89,15 +89,15 @@ export function MobileNav({ main, bottom, unread, moreLabel = "Plus" }: { main: 
           </div>
         </div>
       )}
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex print:hidden border-t border-line bg-paper/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex print:hidden bg-olive-700 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5 lg:hidden">
         {visible.map((i) => (
-          <Link key={i.key} href={i.href} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ink-500">
+          <Link key={i.key} href={i.href} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ivory/75">
             {tab(i, isActive(pathname, i.href))}
           </Link>
         ))}
-        <button type="button" onClick={() => setOpen(true)} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ink-500">
-          <span className={cn("tile h-9 w-9", restActive ? "bg-ink text-ivory" : "text-ink-300")}><Menu className="h-5 w-5" /></span>
-          <span className={cn(restActive && "text-ink")}>{moreLabel}</span>
+        <button type="button" onClick={() => setOpen(true)} className="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-medium text-ivory/75">
+          <span className={cn("tile h-9 w-9", restActive ? "bg-rose-300 text-olive-800" : "text-ivory/70")}><Menu className="h-5 w-5" /></span>
+          <span className={cn(restActive && "font-bold text-butter")}>{moreLabel}</span>
         </button>
       </nav>
     </>
