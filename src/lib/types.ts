@@ -31,7 +31,7 @@ export interface EventRow {
   end_at: string | null; teardown_at: string | null; manager_id: string | null; notes: string | null;
   created_by: string | null; created_at: string;
   load_at?: string | null; access_notes?: string | null; site_contact_name?: string | null; site_contact_phone?: string | null;
-  delivered_at?: string | null; invoice_handed_at?: string | null;
+  delivered_at?: string | null; invoice_handed_at?: string | null; guests?: number | null;
 }
 export interface AttendanceDay {
   employee_id: string; work_date: string; scheduled_start: string | null; scheduled_end: string | null; first_in: string | null;

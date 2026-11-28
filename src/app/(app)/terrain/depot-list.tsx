@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PackageX, Search, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -47,6 +48,7 @@ export function DepotList({ lang, groups, canMove }: { lang: Lang; groups: Depot
                 </p>}
               </div>
             </div>
+            <Link href={`/evenements/${g.id}/fiche`} className="mb-3 flex min-h-11 items-center justify-center rounded-xl bg-sand-50 px-3 text-sm font-bold ring-1 ring-line">{t(lang, "t.sheet")}</Link>
             {g.lines.length === 0 && <p className="py-4 text-center text-ink-400">{t(lang, "t.noItems")}</p>}
             <ul className="space-y-3">
               {g.lines.map((l) => {

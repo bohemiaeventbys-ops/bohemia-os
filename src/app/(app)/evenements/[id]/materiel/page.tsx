@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge, toneTile } from "@/components/ui/badge";
 import { Empty } from "@/components/ui/empty";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
-import { Input, Select } from "@/components/ui/field";
+import { Input } from "@/components/ui/field";
 import { PhotoInput } from "@/components/ui/photo-input";
 import { NavIcon } from "@/components/layout/icon";
 import { requireSession } from "@/lib/auth";
@@ -18,6 +18,7 @@ import { fullName } from "@/lib/format";
 import { LINE_STATUS, STOCK_BUCKET, type EventItem, type StockCategory, type StockItem } from "@/lib/stock";
 import type { EventRow } from "@/lib/types";
 import { reserveItem, returnLine, setLineStep } from "../../../stock/actions";
+import { ItemPicker } from "./item-picker";
 
 export const metadata = { title: "Matériel de l'événement" };
 
@@ -62,6 +63,11 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
 
   const urls = await signedUrls(supabase, STOCK_BUCKET, [...lines.map((l) => itemMap.get(l.item_id)?.photo_path), ...lines.flatMap((l) => [l.loaded_photo_path, l.return_photo_path])]);
   const already = new Set(lines.map((l) => l.item_id));
+  const pickUrls = canMove ? await signedUrls(supabase, STOCK_BUCKET, items.filter((i) => !already.has(i.id)).map((i) => i.photo_path)) : new Map<string, string>();
+  const pickItems = items.filter((i) => !already.has(i.id)).map((i) => ({
+    id: i.id, name: i.name, code: i.code ?? null, cat: i.category_id ? catMap.get(i.category_id)?.name ?? null : null,
+    photo: i.photo_path ? pickUrls.get(i.photo_path) ?? null : null, avail: avail(i), place: i.location,
+  }));
   const days = diffDays(e.event_date, todayISO());
   const count = (st: EventItem["status"]) => lines.filter((l) => l.status === st).length;
 
@@ -88,25 +94,9 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
 
       {canMove && (
         <Card className="mb-6">
-          <CardHeader title="Ajouter du matériel" icon={<PackagePlus />} tone="rose" subtitle="Le disponible tient compte des autres événements aux mêmes dates" />
+          <CardHeader title="+ Ajouter du stock" icon={<PackagePlus />} tone="rose" subtitle="Le disponible tient compte des autres événements aux mêmes dates" />
           <CardBody>
-            <ActionForm action={reserveItem} resetOnSuccess className="grid gap-2 sm:grid-cols-[1fr_110px_auto]">
-              <input type="hidden" name="event_id" value={id} />
-              <Select name="item_id" required defaultValue="" className="h-12 text-base">
-                <option value="" disabled>Choisir un article…</option>
-                {cats.map((c) => {
-                  const list = items.filter((i) => i.category_id === c.id && !already.has(i.id));
-                  return list.length ? (
-                    <optgroup key={c.id} label={c.name}>
-                      {list.map((i) => <option key={i.id} value={i.id} disabled={avail(i) === 0}>{i.name} · {avail(i)} dispo</option>)}
-                    </optgroup>
-                  ) : null;
-                })}
-                {items.filter((i) => !i.category_id && !already.has(i.id)).map((i) => <option key={i.id} value={i.id} disabled={avail(i) === 0}>{i.name} · {avail(i)} dispo</option>)}
-              </Select>
-              <Input name="qty" type="number" min={1} defaultValue={1} required className="h-12 text-center text-base font-semibold" aria-label="Quantité" />
-              <SubmitButton size="lg"><PackagePlus className="h-5 w-5" /> Réserver</SubmitButton>
-            </ActionForm>
+            <ItemPicker eventId={id} items={pickItems} />
           </CardBody>
         </Card>
       )}
@@ -138,6 +128,7 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
                           <div className="min-w-0 flex-1">
                             <p className="text-[15px] font-semibold leading-snug">{i?.name ?? "Article"}</p>
                             <p className="text-xs text-ink-400">{i?.location ? `Rangé : ${i.location}` : c?.name}</p>
+                            {l.finish && <p className="mt-0.5 inline-block rounded-lg bg-plum-100 px-2 py-0.5 text-xs font-semibold text-plum-700">Finition : {l.finish}</p>}
                             {l.note && <p className="text-xs text-ink-500">« {l.note} »</p>}
                           </div>
                           <span className="shrink-0 rounded-xl bg-sand-100 px-3 py-1.5 font-display text-2xl font-semibold tabular-nums">× {l.qty}</span>
@@ -153,6 +144,7 @@ export default async function EventMaterial({ params }: { params: Promise<{ id: 
                               <input type="hidden" name="event_id" value={id} /><input type="hidden" name="item_id" value={l.item_id} />
                               <div className="flex gap-2">
                                 <Input name="qty" type="number" min={0} defaultValue={l.qty} className="h-11 w-20 text-center" aria-label="Changer la quantité (0 pour retirer)" />
+                                <Input name="finish" defaultValue={l.finish ?? ""} placeholder="Finition" className="h-11 w-36" aria-label="Finition / couleur" />
                                 <SubmitButton variant="secondary">Changer</SubmitButton>
                               </div>
                             </ActionForm>

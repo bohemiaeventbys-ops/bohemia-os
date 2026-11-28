@@ -139,6 +139,10 @@ function Place({ lang, e }: { lang: Lang; e: Ev }) {
   );
 }
 
+function SheetLink({ lang, id }: { lang: Lang; id: string }) {
+  return <Link href={`/evenements/${id}/fiche`} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-[15px] font-bold text-ink ring-2 ring-line"><FileText className="h-5 w-5" /> {t(lang, "t.sheet")}</Link>;
+}
+
 function BigLinks({ lang, e }: { lang: Lang; e: Ev }) {
   const phone = e.site_contact_phone ?? e.client_phone;
   const btn = "flex min-h-14 items-center justify-center gap-2 rounded-2xl px-3 text-[17px] font-bold shadow-card active:scale-[0.98]";
@@ -195,6 +199,7 @@ function ChauffeurCard({ lang, e, bl, open }: { lang: Lang; e: Ev; bl: number; o
       <FieldReport lang={lang} eventId={e.id} kind="bl" label={t(lang, "t.scanBL")} icon={<FileText className="h-6 w-6" />} tone="plum" success="t.blSaved" />
       {bl > 0 && <p className="text-sm font-semibold text-sage-700">✓ <span dir="ltr">{bl}</span> {t(lang, "t.blCount")}</p>}
       <MarkButton lang={lang} eventId={e.id} what="facture" kind="check" done={!!e.invoice_handed_at} labelOn="t.invoiceHanded" labelOff="t.invoiceNotHanded" />
+      <SheetLink lang={lang} id={e.id} />
     </Card>
   );
 }
@@ -265,6 +270,7 @@ async function Installation({ lang, events }: { lang: Lang; events: Ev[] }) {
           )}
         </div>
         <FieldReport lang={lang} eventId={e.id} kind="photo_installation" label={t(lang, "t.addPhoto")} icon={<Camera className="h-6 w-6" />} tone="teal" success="t.photoSaved" />
+        <SheetLink lang={lang} id={e.id} />
         <FieldReport lang={lang} eventId={e.id} kind="probleme" label={t(lang, "t.reportProblem")} icon={<AlertTriangle className="h-6 w-6" />} tone="clay" photo="optional" note success="t.problemSaved" />
         {ph.length > 0 && (
           <div>

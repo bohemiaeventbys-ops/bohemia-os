@@ -33,6 +33,7 @@ function payload(fd: FormData) {
     manager_id: str(fd, "manager_id"),
     notes: str(fd, "notes"),
     access_notes: str(fd, "access_notes"),
+    guests: (() => { const n = Number(str(fd, "guests")); return Number.isInteger(n) && n > 0 ? n : null; })(),
     site_contact_name: str(fd, "site_contact_name"),
     site_contact_phone: str(fd, "site_contact_phone"),
   };
@@ -128,4 +129,30 @@ export async function saveFinances(_: ActionResult, fd: FormData): Promise<Actio
   revalidatePath(`/evenements/${id}`);
   revalidatePath("/evenements");
   return { ok: "Montants enregistrés." };
+}
+
+/* ------------------------- Matériaux à acheter / fabriquer ------------------------- */
+export async function addMaterial(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const eventId = str(fd, "event_id");
+  const label = str(fd, "label");
+  if (!eventId || !label) return { error: "Écrivez le matériau." };
+  const q = Number((str(fd, "qty") ?? "").replace(",", "."));
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_materials").insert({
+    event_id: eventId, label, qty: Number.isFinite(q) && q > 0 ? q : null, unit: str(fd, "unit"), note: str(fd, "note"),
+  });
+  if (error) return fail(error);
+  revalidatePath(`/evenements/${eventId}`);
+  return { ok: "Ajouté." };
+}
+
+export async function deleteMaterial(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const id = str(fd, "id");
+  const eventId = str(fd, "event_id");
+  if (!id) return { error: "Action invalide." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_materials").delete().eq("id", id);
+  if (error) return fail(error);
+  if (eventId) revalidatePath(`/evenements/${eventId}`);
+  return { ok: "Retiré." };
 }

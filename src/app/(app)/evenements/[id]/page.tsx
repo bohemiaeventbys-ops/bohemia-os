@@ -9,7 +9,7 @@ import { Empty } from "@/components/ui/empty";
 import { buttonClass } from "@/components/ui/button";
 import { ActionForm, SubmitButton } from "@/components/ui/action-form";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
-import { FileText, Lock, Sparkles, Warehouse } from "lucide-react";
+import { FileText, Hammer, Handshake, Lock, Palette, Sparkles, Warehouse } from "lucide-react";
 import { generateEventTasks } from "../../parametres/taches-auto/actions";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -22,6 +22,7 @@ import { TaskTable } from "../../taches/task-row";
 import { addTeamMember, removeTeamMember, saveFinances } from "../actions";
 import { ServicesCard } from "./services-card";
 import { ClientDocsCard } from "./client-docs-card";
+import { MaterialsCard } from "./materials-card";
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -65,6 +66,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               <Info label="Client">{e.client_name ?? "—"}{e.client_phone && <p className="text-ink-400">{e.client_phone}</p>}</Info>
               <Info label="Lieu">{e.address ?? "—"}</Info>
               <Info label="Responsable">{e.manager_id ? fullName(people.get(e.manager_id)) : "—"}</Info>
+              <Info label="Nombre de personnes">{e.guests ? <b className="text-lg">{e.guests}</b> : "—"}</Info>
               <Info label="Livraison">{formatDateTime(e.delivery_at)}</Info>
               <Info label="Installation">{formatDateTime(e.setup_at)}</Info>
               <Info label="Début">{formatDateTime(e.start_at)}</Info>
@@ -73,6 +75,24 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               {e.notes && <Info label="Notes" className="md:col-span-3"><p className="whitespace-pre-line">{e.notes}</p></Info>}
             </CardBody>
           </Card>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[
+              { href: `/evenements/${id}/conception`, icon: <Palette className="h-7 w-7" />, cls: "bg-rose-100 text-rose-700", label: "Design", hint: "Photo du design" },
+              { href: `/evenements/${id}/materiel`, icon: <Warehouse className="h-7 w-7" />, cls: "bg-ochre-100 text-ochre-700", label: "Matériel du dépôt", hint: mat.length ? `${mat.length} article(s)` : "Réserver du stock" },
+              { href: "#materiaux", icon: <Hammer className="h-7 w-7" />, cls: "bg-teal-100 text-teal-700", label: "Matériaux", hint: "Bois, plexi, vinyle…" },
+              { href: "#prestataires", icon: <Handshake className="h-7 w-7" />, cls: "bg-plum-100 text-plum-700", label: "Prestataires", hint: "Crêpes, glace…" },
+            ].map((x) => (
+              <Link key={x.label} href={x.href} className="card flex flex-col items-center gap-2 px-3 py-4 text-center transition hover:-translate-y-0.5 hover:shadow-pop">
+                <span className={`tile h-14 w-14 ${x.cls}`}>{x.icon}</span>
+                <span className="text-[15px] font-bold leading-tight">{x.label}</span>
+                <span className="text-xs text-ink-500">{x.hint}</span>
+              </Link>
+            ))}
+          </div>
+          <Link href={`/evenements/${id}/fiche`} className="flex items-center justify-center gap-2 rounded-2xl bg-ink px-4 py-4 text-[16px] font-bold text-ivory shadow-card hover:opacity-90">
+            <FileText className="h-5 w-5" /> Voir la fiche (PDF) pour l&apos;équipe
+          </Link>
 
           <Card>
             <CardHeader title="Tâches de l'événement" subtitle={`${done}/${tasks.length} terminées`}
@@ -99,7 +119,9 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             <span className={buttonClass("secondary", "sm")}>Ouvrir</span>
           </Link>
 
-          <ServicesCard eventId={id} eventDate={e.event_date} s={s} />
+          <MaterialsCard eventId={id} canEdit={canEdit || s.can("stock.move") || s.can("stock.manage")} />
+
+          <div id="prestataires" className="scroll-mt-24"><ServicesCard eventId={id} eventDate={e.event_date} s={s} event={e} /></div>
         </div>
 
         <div className="space-y-6">

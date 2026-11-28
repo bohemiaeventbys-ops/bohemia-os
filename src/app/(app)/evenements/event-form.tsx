@@ -31,7 +31,8 @@ export function EventFields({ e, employees, clients = [], clientId }: { e?: Even
         <Field label="Téléphone du nouveau client"><Input name="client_phone" type="tel" defaultValue={e?.client_id ? "" : e?.client_phone ?? ""} /></Field>
         <Field label="Statut"><Select name="status" defaultValue={e?.status ?? "confirme"}>{Object.entries(EVENT_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</Select></Field>
         <Field label="Date"><Input type="date" name="event_date" defaultValue={e?.event_date} required /></Field>
-        <Field label="Adresse / lieu" className="md:col-span-2"><Input name="address" defaultValue={e?.address ?? ""} /></Field>
+        <Field label="Nombre de personnes"><Input type="number" name="guests" min={0} inputMode="numeric" defaultValue={e?.guests ?? ""} placeholder="Ex. 150" /></Field>
+        <Field label="Adresse / lieu"><Input name="address" defaultValue={e?.address ?? ""} /></Field>
         <Field label="Responsable"><Select name="manager_id" defaultValue={e?.manager_id ?? ""}><option value="">—</option>{employees.map((x) => <option key={x.id} value={x.id}>{fullName(x)}</option>)}</Select></Field>
       </section>
       <section>

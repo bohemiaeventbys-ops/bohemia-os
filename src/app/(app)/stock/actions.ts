@@ -154,6 +154,10 @@ export async function reserveItem(_: ActionResult, fd: FormData): Promise<Action
   const supabase = await createClient();
   const { error } = await supabase.rpc("stock_reserve", { p_event: eventId, p_item: itemId, p_qty: n, p_note: str(fd, "note") });
   if (error) return fail(error);
+  if (n > 0 && fd.has("finish")) {
+    const { data: line } = await supabase.from("event_items").select("id").eq("event_id", eventId).eq("item_id", itemId).maybeSingle();
+    if (line) await supabase.rpc("stock_set_finish", { p_line: line.id, p_finish: str(fd, "finish") ?? "" });
+  }
   refresh(itemId, eventId);
   return { ok: n === 0 ? "Retiré de la liste." : "Réservé pour l'événement." };
 }
