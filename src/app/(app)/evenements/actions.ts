@@ -24,6 +24,7 @@ function payload(fd: FormData) {
     client_phone: str(fd, "client_phone"),
     event_date: date,
     address: str(fd, "address"),
+    load_at: ts(fd, date, "load"),
     delivery_at: ts(fd, date, "delivery"),
     setup_at: ts(fd, date, "setup"),
     start_at: ts(fd, date, "start"),
@@ -31,6 +32,10 @@ function payload(fd: FormData) {
     teardown_at: ts(fd, date, "teardown"),
     manager_id: str(fd, "manager_id"),
     notes: str(fd, "notes"),
+    access_notes: str(fd, "access_notes"),
+    guests: (() => { const n = Number(str(fd, "guests")); return Number.isInteger(n) && n > 0 ? n : null; })(),
+    site_contact_name: str(fd, "site_contact_name"),
+    site_contact_phone: str(fd, "site_contact_phone"),
   };
 }
 
@@ -124,4 +129,90 @@ export async function saveFinances(_: ActionResult, fd: FormData): Promise<Actio
   revalidatePath(`/evenements/${id}`);
   revalidatePath("/evenements");
   return { ok: "Montants enregistrés." };
+}
+
+/* ------------------------- Matériaux à acheter / fabriquer ------------------------- */
+export async function addMaterial(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const eventId = str(fd, "event_id");
+  const label = str(fd, "label");
+  if (!eventId || !label) return { error: "Écrivez le matériau." };
+  const q = Number((str(fd, "qty") ?? "").replace(",", "."));
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_materials").insert({
+    event_id: eventId, label, qty: Number.isFinite(q) && q > 0 ? q : null, unit: str(fd, "unit"), note: str(fd, "note"),
+  });
+  if (error) return fail(error);
+  revalidatePath(`/evenements/${eventId}`);
+  return { ok: "Ajouté." };
+}
+
+export async function deleteMaterial(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const id = str(fd, "id");
+  const eventId = str(fd, "event_id");
+  if (!id) return { error: "Action invalide." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_materials").delete().eq("id", id);
+  if (error) return fail(error);
+  if (eventId) revalidatePath(`/evenements/${eventId}`);
+  return { ok: "Retiré." };
+}
+
+/* ------------------------- Équipe : affectations ------------------------- */
+const ROLE_KEYS = ["commercial", "infographiste", "atelier", "magasinier", "chauffeur", "installateur", "responsable"];
+
+export async function addAssignment(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const s = await requireSession();
+  if (!s.can("events.manage")) return { error: "Réservé aux responsables des événements." };
+  const eventId = str(fd, "event_id");
+  const who = str(fd, "employee_id");
+  const role = str(fd, "role");
+  if (!eventId || !role || !ROLE_KEYS.includes(role)) return { error: "Choisissez la personne et son rôle." };
+  const external = who === "externe";
+  const extName = str(fd, "external_name");
+  if (!who || (external && !extName)) return { error: external ? "Écrivez le nom du renfort." : "Choisissez la personne." };
+  const day = str(fd, "day");
+  const start = day && str(fd, "start") ? localToISO(day, str(fd, "start")!) : null;
+  let end = day && str(fd, "end") ? localToISO(day, str(fd, "end")!) : null;
+  if (start && end && end <= start) end = new Date(new Date(end).getTime() + 86400000).toISOString(); // fin après minuit
+  const supabase = await createClient();
+  const { data: row, error } = await supabase.from("event_assignments").insert({
+    event_id: eventId, employee_id: external ? null : who, external_name: external ? extName : null, external_phone: external ? str(fd, "external_phone") : null,
+    role, mission: str(fd, "mission"), start_at: start, end_at: end, is_lead: fd.get("is_lead") === "on",
+  }).select("id").single();
+  if (error) return fail(error);
+  revalidatePath(`/evenements/${eventId}`);
+  revalidatePath(`/evenements/${eventId}/fiche`);
+  revalidatePath("/semaine");
+  // Déjà prise ailleurs au même moment ?
+  if (!external && start) {
+    const { data: others } = await supabase.from("event_assignments").select("start_at, end_at, events(name)")
+      .eq("employee_id", who).neq("id", row.id).lt("start_at", end ?? new Date(new Date(start).getTime() + 3600000).toISOString())
+      .gt("end_at", start);
+    const o = (others ?? [])[0] as unknown as { events: { name: string } | null } | undefined;
+    if (o) return { ok: `Ajouté. Attention : cette personne est déjà prise au même moment (${o.events?.name ?? "autre mission"}).` };
+  }
+  return { ok: "Ajouté : la mission apparaît dans son planning." };
+}
+
+export async function removeAssignment(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const id = str(fd, "id");
+  const eventId = str(fd, "event_id");
+  if (!id) return { error: "Action invalide." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_assignments").delete().eq("id", id);
+  if (error) return fail(error);
+  if (eventId) { revalidatePath(`/evenements/${eventId}`); revalidatePath(`/evenements/${eventId}/fiche`); }
+  revalidatePath("/semaine");
+  return { ok: "Retiré." };
+}
+
+export async function saveGuests(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const id = str(fd, "id");
+  const n = Number(str(fd, "guests"));
+  if (!id || !Number.isInteger(n) || n < 0 || n > 100000) return { error: "Nombre invalide." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("events").update({ guests: n || null }).eq("id", id);
+  if (error) return fail(error);
+  revalidatePath(`/evenements/${id}`);
+  return { ok: "Enregistré." };
 }

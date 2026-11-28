@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Handshake, Plus } from "lucide-react";
+import { Handshake, MessageCircle, Plus } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Empty } from "@/components/ui/empty";
@@ -9,14 +9,17 @@ import type { Session } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, hhmm } from "@/lib/dates";
 import { formatMAD } from "@/lib/format";
-import { SERVICE_STATUS, SUPPLIER_KIND, type EventService, type Expense, type Supplier } from "@/lib/suppliers";
+import { SERVICE_STATUS, SUPPLIER_KIND, waLink, type EventService, type Expense, type Supplier } from "@/lib/suppliers";
+import { buttonClass } from "@/components/ui/button";
+import { toLocalTime } from "@/lib/dates";
+import type { EventRow } from "@/lib/types";
 import { ContactButtons } from "../../fournisseurs/contact-buttons";
 import { deleteService, saveService, setServiceStatus } from "../../fournisseurs/actions";
 
 const NEXT: Partial<Record<EventService["status"], EventService["status"]>> = { a_reserver: "reserve", reserve: "confirme", confirme: "realise" };
 
 /** Prestataires et sous-traitants d'un événement : moquette, animation, impression… */
-export async function ServicesCard({ eventId, eventDate, s }: { eventId: string; eventDate: string; s: Session }) {
+export async function ServicesCard({ eventId, eventDate, s, event }: { eventId: string; eventDate: string; s: Session; event?: EventRow }) {
   const supabase = await createClient();
   const fin = s.can("finance.view");
   const canEdit = s.can("events.manage") || s.can("suppliers.manage");
@@ -54,6 +57,10 @@ export async function ServicesCard({ eventId, eventDate, s }: { eventId: string;
                   </summary>
                   <div className="space-y-4 border-t border-line bg-sand-50/60 px-5 py-4">
                     <div className="flex flex-wrap items-center gap-2">
+                      {x && (() => {
+                        const wa = waLink(x.whatsapp ?? x.phone);
+                        return wa ? <a href={`${wa}?text=${encodeURIComponent(orderText(x, v, eventDate, event))}`} target="_blank" rel="noreferrer" className={buttonClass("success", "lg")}><MessageCircle className="h-5 w-5" /> Envoyer sa liste sur WhatsApp</a> : null;
+                      })()}
                       {x && <ContactButtons s={x} />}
                       {canEdit && next && (
                         <ActionForm action={setServiceStatus}>
@@ -98,7 +105,7 @@ function ServiceForm({ eventId, suppliers, v, e, fin }: { eventId: string; suppl
             {groups.map((g) => <optgroup key={g.label} label={g.label}>{g.list.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</optgroup>)}
           </Select>
         </Field>
-        <Field label="Quoi"><Input name="description" required defaultValue={v?.description} placeholder="Ex. Moquette rouge 40 m²" /></Field>
+        <Field label="Activité"><Input name="description" required defaultValue={v?.description} placeholder="Ex. Stand crêpes, glaces, shawarma, gâteau…" /></Field>
         <Field label="Jour (vide = jour de l'événement)"><Input name="service_date" type="date" defaultValue={v?.service_date ?? ""} /></Field>
         <Field label="Heure d'arrivée"><Input name="service_time" type="time" defaultValue={v?.service_time?.slice(0, 5) ?? ""} /></Field>
         <Field label="Où en est-on">
@@ -114,8 +121,25 @@ function ServiceForm({ eventId, suppliers, v, e, fin }: { eventId: string; suppl
           </Field>
         </div>
       )}
-      <Field label="Notes"><Textarea name="notes" rows={2} defaultValue={v?.notes ?? ""} /></Field>
+      <Field label="Sa liste (quantités, parfums, détails…)" hint="Envoyée telle quelle sur WhatsApp, sans les prix"><Textarea name="notes" rows={4} defaultValue={v?.notes ?? ""} placeholder={"Ex. 150 crêpes\n2 animatrices de 16h à 20h\nNutella, miel, amlou"} /></Field>
       <SubmitButton>{v ? "Enregistrer" : "Ajouter"}</SubmitButton>
     </ActionForm>
   );
+}
+
+/** Message WhatsApp pour le prestataire : l'événement, l'heure, le lieu et sa liste. Jamais de prix. */
+function orderText(x: Supplier, v: EventService, eventDate: string, e?: EventRow) {
+  const day = formatDate(v.service_date ?? eventDate);
+  const time = v.service_time ? hhmm(v.service_time) : e?.start_at ? toLocalTime(e.start_at) : null;
+  return [
+    `Bonjour ${x.contact_name ?? x.name},`,
+    `Commande Bohemia Events${e ? ` pour « ${e.name} »` : ""} :`,
+    `📅 ${day}${time ? ` à ${time}` : ""}`,
+    e?.address ? `📍 ${e.address}` : null,
+    e?.guests ? `👥 ${e.guests} personnes` : null,
+    `🎪 ${v.description}`,
+    v.notes ? `\n${v.notes}` : null,
+    e?.site_contact_name || e?.site_contact_phone ? `\nContact sur place : ${[e?.site_contact_name, e?.site_contact_phone].filter(Boolean).join(" ")}` : null,
+    `\nMerci de confirmer 🙏`,
+  ].filter(Boolean).join("\n");
 }
